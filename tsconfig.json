@@ -11,6 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["weather_agent.ts"],
+  "include": ["agent.ts", "run_local.ts", "run_ci.ts"],
   "exclude": ["node_modules", "dist"]
 }

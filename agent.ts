@@ -1,14 +1,20 @@
-#!/usr/bin/env node
 /**
- * Paragliding Weather Agent (TypeScript)
- * Fetches multi-source weather data and generates a daily flying brief via Claude.
+ * agent.ts — Core paragliding weather agent
+ * All data fetching, formatting, and LLM logic lives here.
+ * No env loading. No entrypoint. Import from run-local.ts or run-ci.ts.
  */
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-interface Site {
+export interface Site {
   lat: number;
   lon: number;
+}
+
+export interface AgentConfig {
+  anthropicApiKey: string;
+  telegramBotToken: string;
+  telegramChatId: string;
 }
 
 interface OpenMeteoResponse {
@@ -37,28 +43,17 @@ interface AnthropicResponse {
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 
-const SITES: Record<string, Site> = {
-  "Mussel Rock": { lat: 37.6335, lon: -122.4897},
+export const SITES: Record<string, Site> = {
+  "Mussel Rock": { lat: 37.6335, lon: -122.4897 },
 };
 
-const SOUNDING_STATION = "72493"; // Oakland upper-air station
-const METAR_STATIONS = ["KSFO", "KHAF"]; // SFO + Half Moon Bay
-const LOCAL_TZ = "America/Los_Angeles";
-
-// Required env vars — fail fast if missing
-const ANTHROPIC_API_KEY = requireEnv("ANTHROPIC_API_KEY");
-const TELEGRAM_BOT_TOKEN = requireEnv("TELEGRAM_BOT_TOKEN");
-const TELEGRAM_CHAT_ID = requireEnv("TELEGRAM_CHAT_ID");
-
-function requireEnv(key: string): string {
-  const val = process.env[key];
-  if (!val) throw new Error(`Missing required environment variable: ${key}`);
-  return val;
-}
+export const SOUNDING_STATION = "KOAK"; // Oakland — IEM uses ICAO identifiers
+export const METAR_STATIONS = ["KSFO", "KHAF"]; // SFO + Half Moon Bay
+export const LOCAL_TZ = "America/Los_Angeles";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function localNow(): Date {
+export function localNow(): Date {
   return new Date(new Date().toLocaleString("en-US", { timeZone: LOCAL_TZ }));
 }
 
@@ -76,7 +71,7 @@ function formatDate(): string {
   });
 }
 
-async function fetchWithTimeout(
+export async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
   timeoutMs = 15000
@@ -84,8 +79,7 @@ async function fetchWithTimeout(
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(id);
   }
@@ -93,7 +87,7 @@ async function fetchWithTimeout(
 
 // ── Data Fetchers ──────────────────────────────────────────────────────────────
 
-async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMeteoResponse> {
+export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMeteoResponse> {
   const params = new URLSearchParams({
     latitude: lat.toString(),
     longitude: lon.toString(),
@@ -114,38 +108,116 @@ async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMeteoRespon
     timezone: LOCAL_TZ,
   });
 
-  const res = await fetchWithTimeout(
-    `https://api.open-meteo.com/v1/forecast?${params}`
-  );
+  const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
   return res.json() as Promise<OpenMeteoResponse>;
 }
 
-async function fetchSounding(station: string): Promise<string> {
+export async function fetchSounding(station: string): Promise<string> {
+  // IEM (Iowa State) JSON sounding API — reliable near-real-time data from SPC.
+  // Replaces the Wyoming bufrraob endpoint which is consistently unreliable.
+  // Soundings launch at 00Z and 12Z. We try the most recent cycle first,
+  // then fall back to the prior one if balloon data isn't uploaded yet.
   const nowUtc = new Date();
   const hour = nowUtc.getUTCHours() >= 12 ? 12 : 0;
-  const dateStr = nowUtc.toISOString().slice(0, 10).replace(/-/g, "");
+
+  const buildTimestamp = (date: Date, h: number): string => {
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const d = String(date.getUTCDate()).padStart(2, "0");
+    return `${y}${m}${d}${String(h).padStart(2, "0")}00`;
+  };
+
+  // If we're <30 min past cycle launch, data may not be up yet — try prior cycle first
+  const minPastCycle = nowUtc.getUTCMinutes() + (nowUtc.getUTCHours() - hour) * 60;
+  const primaryHour = minPastCycle < 30 ? (hour === 12 ? 0 : 12) : hour;
+  const fallbackHour = primaryHour === 12 ? 0 : 12;
 
   const buildUrl = (h: number) =>
-    `https://weather.uwyo.edu/cgi-bin/bufrraob.py` +
-    `?station=${station}&time=${dateStr}${String(h).padStart(2, "0")}00&type=TEXT%3ALIST`;
+    `https://mesonet.agron.iastate.edu/json/raob.py` +
+    `?ts=${buildTimestamp(nowUtc, h)}&station=${station}&fmt=json`;
 
-  try {
-    let res = await fetchWithTimeout(buildUrl(hour));
-    if (!res.ok || (await res.clone().text()).length < 200) {
-      // Fallback to alternate cycle
-      res = await fetchWithTimeout(buildUrl(hour === 12 ? 0 : 12));
-    }
-    const text = await res.text();
-    return text.slice(0, 4000); // Trim to avoid token overflow
-  } catch (e) {
-    return `Sounding unavailable: ${e}`;
+  interface SoundingLevel {
+    pressure: number;
+    height: number;
+    tmpc: number;
+    dwpc: number;
+    drct: number;
+    speed: number;
+    levelcode: number;
   }
+  interface SoundingResponse {
+    profiles?: Array<{
+      station: string;
+      valid: string;
+      profile: SoundingLevel[];
+      sbcape?: number;
+      sbcin?: number;
+      pwater?: number;
+      lcl_hght?: number;
+      lfc_pressure?: number;
+      el_hght?: number;
+      total_totals?: number;
+      sweat_index?: number;
+      lifted_index?: number;
+    }>;
+  }
+
+  const tryFetch = async (h: number): Promise<SoundingResponse | null> => {
+    try {
+            console.log('buildUrl', buildUrl(h));
+
+      const res = await fetchWithTimeout(buildUrl(h));
+      if (!res.ok) return null;
+      const data = await res.json() as SoundingResponse;
+      if (!data.profiles?.length || !data.profiles[0].profile?.length) return null;
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  const data = (await tryFetch(primaryHour)) ?? (await tryFetch(fallbackHour));
+  console.log('data', JSON.stringify(data, undefined, '  '));
+
+  if (!data?.profiles?.length) {
+    return `Sounding unavailable for ${station} — both cycles returned no data.`;
+  }
+
+  const p = data.profiles[0];
+  const lines: string[] = [
+    `Station: ${p.station}  Valid: ${p.valid} UTC`,
+    `Lifted Index: ${p.lifted_index ?? "N/A"}`,
+    `SBCAPE: ${p.sbcape ?? "N/A"} J/kg  SBCIN: ${p.sbcin ?? "N/A"} J/kg`,
+    `Precipitable Water: ${p.pwater ?? "N/A"} mm`,
+    `LCL Height: ${p.lcl_hght ?? "N/A"}m  LFC: ${p.lfc_pressure ?? "N/A"}mb  EL: ${p.el_hght ?? "N/A"}m`,
+    `Total Totals: ${p.total_totals ?? "N/A"}  SWEAT Index: ${p.sweat_index ?? "N/A"}`,
+    "",
+    "Pres(mb)  Hght(m)  Temp(C)  Dwpt(C)  WindDir  WindKt",
+  ];
+
+  // Surface + key pressure levels for paragliding (850mb ~1500m, 700mb ~3000m)
+  const keyPressures = [850, 700, 500];
+  const relevantLevels = p.profile.filter(
+    (l) => l.levelcode === 9 || keyPressures.some((kp) => Math.abs(l.pressure - kp) < 5)
+  );
+
+  for (const lvl of relevantLevels) {
+    lines.push(
+      `${String(lvl.pressure).padStart(8)}  ` +
+      `${String(lvl.height).padStart(7)}  ` +
+      `${String(lvl.tmpc).padStart(7)}  ` +
+      `${String(lvl.dwpc).padStart(7)}  ` +
+      `${String(lvl.drct).padStart(7)}  ` +
+      `${String(lvl.speed).padStart(6)}`
+    );
+  }
+
+  return lines.join("\n").slice(0, 3000);
 }
 
-async function fetchMetars(stations: string[]): Promise<string> {
-  const ids = stations.join(",");
-  const url = `https://aviationweather.gov/api/data/metar?ids=${ids}&format=raw&hours=2`;
+export async function fetchMetars(stations: string[]): Promise<string> {
+  const url = `https://aviationweather.gov/api/data/metar?ids=${stations.join(",")}&format=raw&hours=2`;
   try {
     const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`METAR ${res.status}`);
@@ -155,11 +227,9 @@ async function fetchMetars(stations: string[]): Promise<string> {
   }
 }
 
-async function fetchAirmets(): Promise<string> {
+export async function fetchAirmets(): Promise<string> {
   try {
-    const res = await fetchWithTimeout(
-      "https://aviationweather.gov/api/data/airmet?format=json"
-    );
+    const res = await fetchWithTimeout("https://aviationweather.gov/api/data/airmet?format=json");
     if (!res.ok) throw new Error(`AIRMET ${res.status}`);
     const data = await res.json() as { features: Array<{ properties: Record<string, string> }> };
 
@@ -175,9 +245,7 @@ async function fetchAirmets(): Promise<string> {
       })
       .map((p) => `AIRMET ${p.hazard}: ${p.synopsis ?? "See full advisory"}`);
 
-    return relevant.length > 0
-      ? relevant.join("\n")
-      : "No active AIRMETs for the Bay Area.";
+    return relevant.length > 0 ? relevant.join("\n") : "No active AIRMETs for the Bay Area.";
   } catch (e) {
     return `AIRMET fetch failed: ${e}`;
   }
@@ -185,11 +253,9 @@ async function fetchAirmets(): Promise<string> {
 
 // ── Data Formatting ────────────────────────────────────────────────────────────
 
-function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
+export function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
   const { hourly } = data;
-  const today = localDateString();
 
-  // Build next 4 date strings
   const dates = Array.from({ length: 4 }, (_, i) => {
     const d = new Date(localNow());
     d.setDate(d.getDate() + i);
@@ -202,11 +268,9 @@ function extractDailySummary(data: OpenMeteoResponse, siteName: string): string 
   ];
 
   hourly.time.forEach((t, i) => {
-    const date = t.slice(0, 10);
-    if (!dates.includes(date)) return;
-
+    if (!dates.includes(t.slice(0, 10))) return;
     const hour = parseInt(t.slice(11, 13), 10);
-    if (hour < 7 || hour > 18) return; // Flying window only
+    if (hour < 7 || hour > 18) return;
 
     const v = (key: keyof typeof hourly): string => {
       const arr = hourly[key] as number[];
@@ -214,7 +278,7 @@ function extractDailySummary(data: OpenMeteoResponse, siteName: string): string 
     };
 
     lines.push(
-      `${date}  ${String(hour).padStart(2, "0")}:00  ` +
+      `${t.slice(0, 10)}  ${String(hour).padStart(2, "0")}:00  ` +
       `${v("windspeed_10m")}kn@${v("winddirection_10m")}°  ` +
       `${v("windspeed_80m")}kn  ` +
       `${v("windspeed_120m")}kn  ` +
@@ -272,7 +336,7 @@ WATCHLIST:
 Be direct. No filler sentences. Prioritize safety without being overly conservative.
 A P3 pilot can handle moderate conditions — call them accurately.`;
 
-async function generateBrief(weatherData: string): Promise<string> {
+export async function generateBrief(weatherData: string, apiKey: string): Promise<string> {
   const system = SYSTEM_PROMPT.replace("{date}", formatDate());
 
   const res = await fetchWithTimeout(
@@ -280,7 +344,7 @@ async function generateBrief(weatherData: string): Promise<string> {
     {
       method: "POST",
       headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
+        "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
       },
@@ -310,8 +374,11 @@ async function generateBrief(weatherData: string): Promise<string> {
 
 // ── Telegram Delivery ──────────────────────────────────────────────────────────
 
-async function sendTelegram(message: string): Promise<void> {
-  // Telegram hard limit is 4096 chars — chunk if needed
+export async function sendTelegram(
+  message: string,
+  botToken: string,
+  chatId: string
+): Promise<void> {
   const chunks: string[] = [];
   for (let i = 0; i < message.length; i += 4000) {
     chunks.push(message.slice(i, i + 4000));
@@ -319,11 +386,11 @@ async function sendTelegram(message: string): Promise<void> {
 
   for (const chunk of chunks) {
     const res = await fetchWithTimeout(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: chunk }),
+        body: JSON.stringify({ chat_id: chatId, text: chunk }),
       }
     );
     if (!res.ok) {
@@ -333,50 +400,38 @@ async function sendTelegram(message: string): Promise<void> {
   }
 }
 
-// ── Main ───────────────────────────────────────────────────────────────────────
+// ── Shared Pipeline ────────────────────────────────────────────────────────────
 
-async function main(): Promise<void> {
+export async function runAgent(config: AgentConfig): Promise<string> {
   const startTime = new Date().toLocaleTimeString("en-US", { timeZone: LOCAL_TZ });
   console.log(`[${startTime}] Starting paragliding weather agent...`);
 
   const dataParts: string[] = [];
 
-  // 1. Open-Meteo for each site
   for (const [siteName, coords] of Object.entries(SITES)) {
     console.log(`  → Fetching Open-Meteo for ${siteName}...`);
     const omData = await fetchOpenMeteo(coords.lat, coords.lon);
     dataParts.push(extractDailySummary(omData, siteName));
   }
 
-  // 2. Sounding data
   console.log("  → Fetching OAK sounding...");
   const sounding = await fetchSounding(SOUNDING_STATION);
   dataParts.push(`\n=== Sounding Data (OAK ${SOUNDING_STATION}) ===\n${sounding}`);
 
-  // 3. METARs
   console.log("  → Fetching METARs...");
   const metars = await fetchMetars(METAR_STATIONS);
   dataParts.push(`\n=== METARs (${METAR_STATIONS.join(", ")}) ===\n${metars}`);
 
-  // 4. AIRMETs
   console.log("  → Fetching AIRMETs...");
   const airmets = await fetchAirmets();
   dataParts.push(`\n=== AIRMETs (Bay Area) ===\n${airmets}`);
 
-  // Combine all data
   const combined = dataParts.join("\n");
-  console.log(`  → Sending ${combined.length} chars to Claude...`);
+//   console.log(`  → Sending ${combined.length} chars to Claude...`);
+console.log(combined);
 
-  // 5. Generate brief
-  const brief = await generateBrief(combined);
-  console.log("  → Brief generated.");
+//   const brief = await generateBrief(combined, config.anthropicApiKey);
+//   console.log("  → Brief generated.");
 
-  // 6. Deliver
-  await sendTelegram(brief);
-  console.log("  → Sent to Telegram. Done.");
+  return brief;
 }
-
-main().catch((err) => {
-  console.error("Agent failed:", err);
-  process.exit(1);
-});
