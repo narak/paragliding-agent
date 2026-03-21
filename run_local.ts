@@ -2,15 +2,18 @@
  * run-local.ts — Local development entrypoint
  *
  * Loads secrets from .env and runs the agent.
- * Pass --dry-run to print the brief to console instead of sending to Telegram.
+ * --dry-run  → prints brief JSON to console, no Telegram, no file write
+ * --no-send  → writes brief.json but skips Telegram
  *
  * Usage:
- *   npx tsx run-local.ts            # sends to Telegram
- *   npx tsx run-local.ts --dry-run  # prints to console only
+ *   npx tsx run-local.ts --dry-run
+ *   npx tsx run-local.ts --no-send
+ *   npx tsx run-local.ts
  */
 
 import "dotenv/config";
-import { runAgent, sendTelegram } from "./agent.js";
+import fs from "fs";
+import { runAgent, sendTelegram, buildTelegramMessage, parseSites, DEFAULT_SITES } from "./agent.js";
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -19,24 +22,39 @@ function requireEnv(key: string): string {
 }
 
 const isDryRun = process.argv.includes("--dry-run");
+const noSend = process.argv.includes("--no-send");
 
 async function main(): Promise<void> {
+  const rawSites = process.env["SITES"] ?? "";
+
   const config = {
     anthropicApiKey: requireEnv("ANTHROPIC_API_KEY"),
     telegramBotToken: requireEnv("TELEGRAM_BOT_TOKEN"),
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
-    sites: requireEnv("SITES"),
+    sites: rawSites || undefined,
+    pagesUrl: process.env["PAGES_URL"],
   };
-console.log(config);
+
   const brief = await runAgent(config);
 
   if (isDryRun) {
-    console.log("\n─── DRY RUN — brief not sent to Telegram ───\n");
-    console.log(brief);
-    console.log("\n────────────────────────────────────────────\n");
-  } else {
-    await sendTelegram(brief, config.telegramBotToken, config.telegramChatId);
+    console.log("\n─── DRY RUN — not sending or saving ───\n");
+    console.log(JSON.stringify(brief, null, 2));
+    console.log("\n────────────────────────────────────────\n");
+    return;
+  }
+
+  // Write brief.json for the web UI
+  fs.mkdirSync("docs", { recursive: true });
+  fs.writeFileSync("docs/brief.json", JSON.stringify(brief, null, 2));
+  console.log("  → Wrote docs/brief.json");
+
+  if (!noSend) {
+    const telegramMsg = buildTelegramMessage(brief, config.pagesUrl);
+    await sendTelegram(telegramMsg, config.telegramBotToken, config.telegramChatId);
     console.log("  → Sent to Telegram. Done.");
+  } else {
+    console.log("  → Skipped Telegram (--no-send). Done.");
   }
 }
 

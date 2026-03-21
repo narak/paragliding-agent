@@ -2,11 +2,13 @@ name: Paragliding Daily Brief
 
 on:
   schedule:
-    # 6:30 AM Pacific Time
-    # Both crons handle daylight saving automatically
     - cron: "30 13 * * *"   # 6:30 AM PST (Nov–Mar)
     - cron: "30 14 * * *"   # 6:30 AM PDT (Mar–Nov)
   workflow_dispatch:         # Manual trigger for testing
+
+# Needed to commit brief.json back to the repo
+permissions:
+  contents: write
 
 jobs:
   send-brief:
@@ -15,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: "24"
 
@@ -34,4 +36,13 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SITES: ${{ vars.SITES }}
-        run: npm start   # runs dist/run-ci.js
+          PAGES_URL: ${{ vars.PAGES_URL }}
+        run: npm start 
+
+      - name: Commit updated brief.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/brief.json
+          git diff --staged --quiet || git commit -m "chore: update brief [skip ci]"
+          git push

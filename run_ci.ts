@@ -1,11 +1,13 @@
 /**
  * run-ci.ts — GitHub Actions entrypoint
  *
- * Reads secrets from process.env (injected by GitHub Actions secrets).
- * No .env loading. Fails fast if any secret is missing.
+ * Reads secrets from process.env, generates brief, writes docs/brief.json,
+ * and sends the compact summary to Telegram.
+ * GitHub Actions then commits docs/brief.json so GitHub Pages serves it.
  */
 
-import { runAgent, sendTelegram } from "./agent.js";
+import fs from "fs";
+import { runAgent, sendTelegram, buildTelegramMessage, parseSites } from "./agent.js";
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -19,10 +21,19 @@ async function main(): Promise<void> {
     telegramBotToken: requireEnv("TELEGRAM_BOT_TOKEN"),
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
     sites: requireEnv("SITES"),
+    pagesUrl: process.env["PAGES_URL"],
   };
 
   const brief = await runAgent(config);
-  await sendTelegram(brief, config.telegramBotToken, config.telegramChatId);
+
+  // Write for GitHub Pages
+  fs.mkdirSync("docs", { recursive: true });
+  fs.writeFileSync("docs/brief.json", JSON.stringify(brief, null, 2));
+  console.log("  → Wrote docs/brief.json");
+
+  // Send compact summary to Telegram
+  const telegramMsg = buildTelegramMessage(brief, config.pagesUrl);
+  await sendTelegram(telegramMsg, config.telegramBotToken, config.telegramChatId);
   console.log("  → Sent to Telegram. Done.");
 }
 

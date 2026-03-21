@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🪂 Paragliding Brief</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --text: #e8eaf0;
+      --muted: #8b92b3;
+      --fly: #22c55e;
+      --marginal: #f59e0b;
+      --nofly: #ef4444;
+      --accent: #6366f1;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; }
+    .header h1 span { opacity: 0.45; font-weight: 400; }
+    .generated-at { font-size: 13px; color: var(--muted); }
+
+    /* State */
+    .state-msg { text-align: center; padding: 80px 20px; color: var(--muted); }
+    .state-msg .icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* TLDR */
+    .tldr {
+      background: linear-gradient(135deg, #1e2040, #252850);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .tldr-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .tldr p { font-size: 15px; }
+
+    /* Two-col cards */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .card.no-margin { margin-bottom: 0; }
+    .card-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .card p { font-size: 14px; }
+
+    /* Sites grid */
+    .sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 640px) { .sites-grid { grid-template-columns: 1fr; } }
+
+    .site-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .site-name { font-size: 16px; font-weight: 700; }
+    .site-location { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .verdict-badge {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .verdict-FLY      { background: rgba(34,197,94,0.15);  color: var(--fly);      border: 1px solid rgba(34,197,94,0.3); }
+    .verdict-MARGINAL { background: rgba(245,158,11,0.15); color: var(--marginal); border: 1px solid rgba(245,158,11,0.3); }
+    .verdict-NO-FLY   { background: rgba(239,68,68,0.15);  color: var(--nofly);    border: 1px solid rgba(239,68,68,0.3); }
+
+    .site-body { padding: 16px 18px; }
+
+    .site-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .meta-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
+    .meta-value { font-size: 13px; font-weight: 600; }
+
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin: 12px 0 5px; }
+    .section-text { font-size: 14px; line-height: 1.6; }
+
+    .hazard-text { color: var(--marginal); }
+
+    details summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--accent);
+      margin-top: 14px;
+      list-style: none;
+      user-select: none;
+    }
+    details summary::before { content: "▶  "; font-size: 10px; }
+    details[open] summary::before { content: "▼  "; }
+    .detail-body { margin-top: 10px; }
+
+    .hourly-window { padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .hourly-window:last-child { border-bottom: none; }
+    .hourly-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+    .hourly-text { font-size: 13px; }
+
+    /* Outlook */
+    .outlook-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .outlook-grid { grid-template-columns: 1fr; } }
+    .outlook-day { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+    .outlook-day-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .outlook-day p { font-size: 13px; }
+
+    .watchlist-text { color: var(--marginal); font-size: 14px; }
+    .watchlist-clear { color: var(--muted); font-size: 14px; }
+
+    .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🪂 Paragliding Brief <span id="header-date"></span></h1>
+    <div class="generated-at" id="generated-at">Loading...</div>
+  </div>
+  <div id="content">
+    <div class="state-msg"><div class="icon">🌤️</div><div>Loading today's brief...</div></div>
+  </div>
+</div>
+
+<script>
+  function esc(s) {
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function verdictClass(v) {
+    if (!v) return "";
+    return "verdict-" + v.replace(/\s+/g, "-").toUpperCase();
+  }
+
+  function render(b) {
+    document.getElementById("header-date").textContent = b.date ? "— " + b.date : "";
+    if (b.generatedAt) {
+      const d = new Date(b.generatedAt).toLocaleString("en-US", {
+        timeZone: "America/Los_Angeles",
+        month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit"
+      });
+      document.getElementById("generated-at").textContent = "Generated " + d + " PT";
+    }
+
+    let html = "";
+
+    // TL;DR
+    html += `<div class="tldr"><div class="tldr-label">TL;DR</div><p>${esc(b.tldr)}</p></div>`;
+
+    // Upper Air + Aviation Flags
+    const flagsClear = (b.aviationFlags ?? "").toLowerCase().trim() === "clear";
+    html += `<div class="two-col">`;
+    html += `<div class="card no-margin"><div class="card-title">Upper Air & Sounding (OAK)</div><p>${esc(b.upperAir)}</p></div>`;
+    html += `<div class="card no-margin"><div class="card-title">Aviation Flags</div><p style="${flagsClear ? "color:var(--muted)" : "color:var(--marginal)"}">${esc(b.aviationFlags)}</p></div>`;
+    html += `</div>`;
+
+    // Sites
+    html += `<div class="sites-grid">`;
+    for (const site of (b.sites ?? [])) {
+      const v = site.verdict ?? {};
+      const vc = verdictClass(v.verdict);
+      const hasHazards = v.hazards && v.hazards.toLowerCase() !== "none" && v.hazards.trim() !== "";
+
+      html += `<div class="site-card">
+        <div class="site-header">
+          <div>
+            <div class="site-name">${esc(site.name)}</div>
+            <div class="site-location">${esc(site.locationDescriptor)}</div>
+          </div>
+          <div class="verdict-badge ${vc}">${esc(v.emoji)} ${esc(v.verdict)}</div>
+        </div>
+        <div class="site-body">
+          <div class="site-meta">
+            <div><div class="meta-label">Best Window</div><div class="meta-value">${esc(v.bestWindow)}</div></div>
+            <div><div class="meta-label">Skill Level</div><div class="meta-value">${esc(v.skillLevel)}</div></div>
+            <div><div class="meta-label">Wind</div><div class="meta-value">${esc(v.wind)}</div></div>
+            <div><div class="meta-label">Thermals</div><div class="meta-value">${esc(v.thermals)}</div></div>
+          </div>
+          ${hasHazards ? `<div class="section-label">Hazards</div><div class="section-text hazard-text">${esc(v.hazards)}</div>` : ""}
+          <div class="section-label">Today's Setup</div>
+          <div class="section-text">${esc(site.todaySetup)}</div>
+          <details>
+            <summary>Hour-by-hour & site mechanics</summary>
+            <div class="detail-body">
+              ${(site.hourlyWindows ?? []).map(w => `
+                <div class="hourly-window">
+                  <div class="hourly-label">${esc(w.label)}</div>
+                  <div class="hourly-text">${esc(w.summary)}</div>
+                </div>`).join("")}
+              <div class="section-label" style="margin-top:14px">How It Works</div>
+              <div class="section-text">${esc(site.howItWorks)}</div>
+            </div>
+          </details>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+
+    // 3-Day Outlook
+    html += `<div class="card">
+      <div class="card-title">3-Day Outlook</div>
+      <div class="outlook-grid">
+        <div class="outlook-day"><div class="outlook-day-label">Tomorrow</div><p>${esc(b.outlook?.tomorrow)}</p></div>
+        <div class="outlook-day"><div class="outlook-day-label">Day 2</div><p>${esc(b.outlook?.day2)}</p></div>
+        <div class="outlook-day"><div class="outlook-day-label">Day 3</div><p>${esc(b.outlook?.day3)}</p></div>
+      </div>
+    </div>`;
+
+    // Watchlist
+    const watchClear = (b.watchlist ?? "").toLowerCase().includes("nothing");
+    html += `<div class="card">
+      <div class="card-title">Watchlist</div>
+      <p class="${watchClear ? "watchlist-clear" : "watchlist-text"}">${esc(b.watchlist)}</p>
+    </div>`;
+
+    html += `<div class="footer">Open-Meteo · IEM Sounding · aviationweather.gov · Analysis by Claude Sonnet</div>`;
+
+    document.getElementById("content").innerHTML = html;
+  }
+
+  async function load() {
+    try {
+      const res = await fetch("./brief.json?t=" + Date.now());
+      if (!res.ok) throw new Error("HTTP " + res.status + " — has the agent run yet?");
+      render(await res.json());
+    } catch (e) {
+      document.getElementById("content").innerHTML = `
+        <div class="state-msg">
+          <div class="icon">⚠️</div>
+          <div>Could not load brief — ${esc(String(e))}</div>
+        </div>`;
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
