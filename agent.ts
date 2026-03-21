@@ -253,7 +253,6 @@ export async function fetchMetars(stations: string[]): Promise<string> {
 export async function fetchAirmets(): Promise<string> {
   // Bay Area falls under SFO ARTCC. The API uses two-letter region codes.
   // From observed responses: "SF" = San Francisco region (ZOA ARTCC).
-  // We also include "SFO" as a fallback in case the API changes.
   const BAY_AREA_REGIONS = ["SF", "SFO"];
   const RELEVANT_HAZARDS = ["TURB", "IFR", "LLWS", "SFC-WIND", "MT-OBSC", "ICE"];
 
@@ -276,7 +275,6 @@ export async function fetchAirmets(): Promise<string> {
 
     const raw = await res.json() as unknown;
 
-    // API returns a plain array — not GeoJSON
     if (!Array.isArray(raw)) {
       console.warn("  ⚠ Unexpected AIRMET shape:", JSON.stringify(raw).slice(0, 200));
       return "AIRMETs: unexpected response format.";
@@ -286,7 +284,6 @@ export async function fetchAirmets(): Promise<string> {
 
     const items = raw as AirmetItem[];
 
-    // Filter to Bay Area regions and relevant hazards
     const relevant = items.filter(
       (item) =>
         BAY_AREA_REGIONS.includes(item.region?.toUpperCase()) &&
@@ -294,7 +291,6 @@ export async function fetchAirmets(): Promise<string> {
     );
 
     if (relevant.length === 0) {
-      // Also show all unique regions present so we can debug if Bay Area code changes
       const regions = [...new Set(items.map((i) => i.region))].join(", ");
       return `No active AIRMETs for Bay Area (SF region). Active regions: ${regions}`;
     }
@@ -302,7 +298,7 @@ export async function fetchAirmets(): Promise<string> {
     const now = Date.now() / 1000;
     return relevant
       .map((item) => {
-        const validTo = new Date(item.validTimeTo * 1000).toUTCString().slice(17, 22); // HH:MM
+        const validTo = new Date(item.validTimeTo * 1000).toUTCString().slice(17, 22);
         const altRange =
           item.base != null && item.top != null
             ? ` FL${item.base}–FL${item.top}`
@@ -323,7 +319,7 @@ export async function fetchAirmets(): Promise<string> {
 export function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
   const { hourly } = data;
 
-  const dates = Array.from({ length: 4 }, (_, i) => {
+  const dates = Array.from({ length: 3 }, (_, i) => {
     const d = new Date(localNow());
     d.setDate(d.getDate() + i);
     return d.toISOString().slice(0, 10);
@@ -411,8 +407,8 @@ Afternoon ([time range]): [1-2 sentences]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 SITE COMPARISON:
-[A plain-text table with these columns: Site | Best Window | Wind | Thermals | Hazards | Verdict]
-[One row per site]
+[A pipe-delimited table. First row is the header, each subsequent row is one site. Columns: Site | Best Window | Wind | Thermals | Hazards | Verdict]
+[Every row must start and end with a pipe character like: | Mussel Rock | 11am-1pm | 8kts W | N/A | Rotor risk | MARGINAL ⚠️ |]
 
 3-DAY OUTLOOK:
 Tomorrow: [one sentence per site, comma-separated]
@@ -427,7 +423,7 @@ TL;DR:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Rules:
-- Be direct and specific. Reference actual numbers from the data.
+- Be direct, specific and succinct. Reference actual numbers from the data.
 - Do not pad with generic safety disclaimers. This pilot knows the sites.
 - Coastal sites (Mussel Rock, Fort Funston): focus on ridge lift mechanics, marine layer, sea breeze timing, rotor risk from NW/NE winds.
 - Thermal sites (Ed Levin, inland): focus on thermal quality, valley breeze cycle, sea breeze front arrival, afternoon instability.
@@ -454,7 +450,6 @@ export async function generateBrief(
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        // model: "claude-haiku-4-5-20251001",
         max_tokens: 8192,
         system,
         messages: [
@@ -478,6 +473,37 @@ export async function generateBrief(
 }
 
 // ── Telegram Delivery ──────────────────────────────────────────────────────────
+
+/** Escape special HTML chars so Telegram's HTML parse_mode doesn't choke */
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * Wrap the brief in Telegram HTML formatting:
+ * - SITE COMPARISON table rows → <pre> for monospace (fixes column wrapping)
+ * - Everything else → plain escaped text
+ */
+function formatForTelegram(message: string): string {
+  const lines = message.split("\n");
+  const out: string[] = [];
+  let inTable = false;
+
+  for (const line of lines) {
+    const isTableRow = line.trim().startsWith("|") && line.trim().endsWith("|");
+
+    if (isTableRow) {
+      if (!inTable) { out.push("<pre>"); inTable = true; }
+      out.push(escapeHtml(line));
+    } else {
+      if (inTable) { out.push("</pre>"); inTable = false; }
+      out.push(escapeHtml(line));
+    }
+  }
+  if (inTable) out.push("</pre>");
+
+  return out.join("\n");
+}
 
 export async function sendTelegram(
   message: string,
@@ -512,7 +538,11 @@ export async function sendTelegram(
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: chunk }),
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: formatForTelegram(chunk),
+          parse_mode: "HTML",
+        }),
       }
     );
     if (!res.ok) {
