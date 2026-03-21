@@ -15,6 +15,30 @@ export interface AgentConfig {
   anthropicApiKey: string;
   telegramBotToken: string;
   telegramChatId: string;
+  sites?: string;
+}
+
+/**
+ * Parse the SITES env var into a typed map.
+ * Format: "Site Name:lat,lon\nSite Name 2:lat,lon"
+ * Example: "Mussel Rock:37.6335,-122.4897\nEd Levin:37.4683,-121.853"
+ */
+export function parseSites(raw: string): Record<string, Site> {
+  const sites: Record<string, Site> = {};
+  for (const entry of raw.split("\n")) {
+    const [name, coords] = entry.split(":");
+    if (!name || !coords) continue;
+    const [lat, lon] = coords.split(",").map(Number);
+    if (isNaN(lat) || isNaN(lon)) {
+      console.warn(`  ⚠ Skipping invalid site entry: "${entry}"`);
+      continue;
+    }
+    sites[name.trim()] = { lat, lon };
+  }
+  if (Object.keys(sites).length === 0) {
+    throw new Error("SITES env var parsed to empty — check format: 'Name:lat,lon\nName2:lat,lon\'");
+  }
+  return sites;
 }
 
 interface OpenMeteoResponse {
@@ -43,8 +67,11 @@ interface AnthropicResponse {
 
 // ── Configuration ──────────────────────────────────────────────────────────────
 
-export const SITES: Record<string, Site> = {
+// SITES is no longer hardcoded — parsed from the SITES env var via parseSites()
+// Default fallback used only when running tests without env
+export const DEFAULT_SITES: Record<string, Site> = {
   "Mussel Rock": { lat: 37.6335, lon: -122.4897 },
+  "Ed Levin":    { lat: 37.4683, lon: -121.8530 },
 };
 
 export const SOUNDING_STATION = "KOAK"; // Oakland — IEM uses ICAO identifiers
@@ -335,50 +362,82 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string): 
 
 // ── LLM Brief Generation ───────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are a paragliding conditions analyst for a USHPA P2/P3 pilot 
-flying coastal sites (primarily Mussel Rock, Daly City, CA) and thermal/desert sites.
+const buildSystemPrompt = (sites: Record<string, Site>, date: string): string => {
+  const siteList = Object.entries(sites)
+    .map(([name]) => `- ${name}`)
+    .join("\n");
 
-Given raw meteorological data from multiple sources, produce a concise morning brief.
+  return `You are an expert paragliding conditions analyst delivering a daily morning brief to a USHPA P2/P3 pilot flying Bay Area sites.
 
-Format your response EXACTLY as follows (use plain text, no markdown):
+Today is ${date}.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🪂 PARAGLIDING BRIEF — {date}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sites to cover:
+${siteList}
 
-TODAY — MUSSEL ROCK
-Verdict: [FLY ✅ / MARGINAL ⚠️ / NO FLY ❌]  Confidence: [High/Med/Low]
-Window: [e.g., 11 AM – 2 PM PDT or "No viable window"]
-Surface wind: [X kts @ Y° — characterize: onshore/offshore/cross]
-Wind at 80m: [X kts @ Y°]
-Wind at 120m: [X kts @ Y°]
-Boundary layer: [Xm AGL — what this means for soaring ceiling]
-CAPE: [value + instability assessment]
-Thermal quality: [Weak/Moderate/Strong + reasoning]
-Sea breeze onset: [estimated time or N/A]
-Precip risk: [X%]
-Hazards: [rotor risk, gradient issues, overdevelopment, marine layer burn-off time]
+You will be given raw meteorological data (Open-Meteo forecasts, upper-air sounding, METARs, AIRMETs) for each site.
 
-SOUNDING (OAK):
-[2-3 sentences: inversion layers, lifted index, wind shear, thermal ceiling implication]
+Write a rich, narrative-style brief in the following format. Use emoji sparingly for verdicts only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🪂 PARAGLIDING BRIEF — ${date}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+UPPER AIR & SOUNDING (OAK):
+[2-3 sentences interpreting the sounding: inversion height, lapse rate, thermal ceiling, wind shear between surface and 850/700mb. This sets context for all sites.]
 
 AVIATION FLAGS:
-[Any active AIRMETs or METAR anomalies worth noting. "Clear" if none.]
+[Active AIRMETs or METAR anomalies. State "Clear" if none.]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Then for EACH site, write a section in this format:
+
+[EMOJI] [SITE NAME] ([location descriptor])
+
+How it works: [1-2 sentences on what conditions this site needs — ridge lift vs thermal, ideal wind direction/speed, key terrain features that matter]
+
+Today's setup:
+[3-5 sentences of narrative analysis — how the forecast data plays out for this specific site, what the wind profile looks like through the day, what the sea breeze or thermal cycle will do, what to watch for. Reference specific numbers from the data.]
+
+Hour-by-hour outlook:
+Morning ([time range]): [1-2 sentences]
+Midday ([time range]): [1-2 sentences]
+Afternoon ([time range]): [1-2 sentences]
+
+[SITE NAME] Verdict: [FLY ✅ / MARGINAL ⚠️ / NO FLY ❌] — [1 sentence summary with recommended pilot skill level and best window]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SITE COMPARISON:
+[A plain-text table with these columns: Site | Best Window | Wind | Thermals | Hazards | Verdict]
+[One row per site]
 
 3-DAY OUTLOOK:
-Tomorrow: [one sentence verdict + key factor]
-Day 2: [one sentence]
-Day 3: [one sentence]
+Tomorrow: [one sentence per site, comma-separated]
+Day 2: [same]
+Day 3: [same]
 
 WATCHLIST:
-[Anything worth monitoring or calling the site pilot about. "Nothing flagged" if clean.]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Anything worth a call to the site pilot or extra monitoring. "Nothing flagged" if clean.]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Be direct. No filler sentences. Prioritize safety without being overly conservative.
-A P3 pilot can handle moderate conditions — call them accurately.`;
+Rules:
+- Be direct and specific. Reference actual numbers from the data.
+- Do not pad with generic safety disclaimers. This pilot knows the sites.
+- Coastal sites (Mussel Rock, Fort Funston): focus on ridge lift mechanics, marine layer, sea breeze timing, rotor risk from NW/NE winds.
+- Thermal sites (Ed Levin, inland): focus on thermal quality, valley breeze cycle, sea breeze front arrival, afternoon instability.
+- P2 can handle light-moderate conditions in benign air — flag anything punchy, 
+  gusty, or requiring active piloting as beyond their limits.
+- P3 can handle moderate-strong conditions — calibrate language accordingly.
+- If a site has no viable window, say so clearly and move on.`;
+};
 
-export async function generateBrief(weatherData: string, apiKey: string): Promise<string> {
-  const system = SYSTEM_PROMPT.replace("{date}", formatDate());
+export async function generateBrief(
+  weatherData: string,
+  apiKey: string,
+  sites: Record<string, Site>
+): Promise<string> {
+  const system = buildSystemPrompt(sites, formatDate());
 
   const res = await fetchWithTimeout(
     "https://api.anthropic.com/v1/messages",
@@ -390,8 +449,9 @@ export async function generateBrief(weatherData: string, apiKey: string): Promis
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
+        model: "claude-sonnet-4-6",
+        // model: "claude-haiku-4-5-20251001",
+        max_tokens: 2048,
         system,
         messages: [
           {
@@ -401,7 +461,7 @@ export async function generateBrief(weatherData: string, apiKey: string): Promis
         ],
       }),
     },
-    30000
+    240000
   );
 
   if (!res.ok) {
@@ -446,10 +506,12 @@ export async function sendTelegram(
 export async function runAgent(config: AgentConfig): Promise<string> {
   const startTime = new Date().toLocaleTimeString("en-US", { timeZone: LOCAL_TZ });
   console.log(`[${startTime}] Starting paragliding weather agent...`);
+  const sites = config.sites ? parseSites(config.sites) : DEFAULT_SITES;
+  console.log(`  → Sites: ${Object.keys(sites).join(", ")}`);
 
   const dataParts: string[] = [];
 
-  for (const [siteName, coords] of Object.entries(SITES)) {
+  for (const [siteName, coords] of Object.entries(sites)) {
     console.log(`  → Fetching Open-Meteo for ${siteName}...`);
     const omData = await fetchOpenMeteo(coords.lat, coords.lon);
     dataParts.push(extractDailySummary(omData, siteName));
@@ -468,9 +530,9 @@ export async function runAgent(config: AgentConfig): Promise<string> {
   dataParts.push(`\n=== AIRMETs (Bay Area) ===\n${airmets}`);
 
   const combined = dataParts.join("\n");
-  console.log(`  → Sending ${combined.length} chars to Claude...`,  combined);
+  console.log(`  → Sending ${combined.length} chars to Claude...`);
 
-//   const brief = await generateBrief(combined, config.anthropicApiKey);
+  const brief = await generateBrief(combined, config.anthropicApiKey, sites);
   console.log("  → Brief generated.");
 
   return brief;

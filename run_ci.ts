@@ -18,6 +18,7 @@ async function main(): Promise<void> {
     anthropicApiKey: requireEnv("ANTHROPIC_API_KEY"),
     telegramBotToken: requireEnv("TELEGRAM_BOT_TOKEN"),
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
+    sites: requireEnv("SITES"),
   };
 
   const brief = await runAgent(config);
