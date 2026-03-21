@@ -1,12 +1,12 @@
 /**
  * run-ci.ts — GitHub Actions entrypoint
  *
- * Reads secrets from process.env, generates brief, writes docs/brief.json,
- * and sends the compact summary to Telegram.
- * GitHub Actions then commits docs/brief.json so GitHub Pages serves it.
+ * Reads secrets from process.env, generates brief, writes docs/briefs/MM-DD.json,
+ * updates docs/briefs/manifest.json, and sends compact summary to Telegram.
  */
 
 import fs from "fs";
+import path from "path";
 import { runAgent, sendTelegram, buildTelegramMessage, parseSites } from "./agent.js";
 
 function requireEnv(key: string): string {
@@ -26,10 +26,23 @@ async function main(): Promise<void> {
 
   const brief = await runAgent(config);
 
-  // Write for GitHub Pages
-  fs.mkdirSync("docs", { recursive: true });
-  fs.writeFileSync("docs/brief.json", JSON.stringify(brief, null, 2));
-  console.log("  → Wrote docs/brief.json");
+  // Write dated brief — MM-DD.json rolls over after a year (max 366 files)
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const mmdd = String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+  const briefsDir = path.join("docs", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  fs.writeFileSync(path.join(briefsDir, `${mmdd}.json`), JSON.stringify(brief, null, 2));
+  console.log(`  → Wrote docs/briefs/${mmdd}.json`);
+
+  // Update manifest so the frontend knows which dates are available
+  const manifestPath = path.join(briefsDir, "manifest.json");
+  const manifest: string[] = fs.existsSync(manifestPath)
+    ? JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
+    : [];
+  if (!manifest.includes(mmdd)) manifest.push(mmdd);
+  manifest.sort();
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log(`  → Updated manifest (${manifest.length} briefs stored)`);
 
   // Send compact summary to Telegram
   const telegramMsg = buildTelegramMessage(brief, config.pagesUrl);

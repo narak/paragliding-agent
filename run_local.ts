@@ -13,6 +13,7 @@
 
 import "dotenv/config";
 import fs from "fs";
+import path from "path";
 import { runAgent, sendTelegram, buildTelegramMessage, parseSites, DEFAULT_SITES } from "./agent.js";
 
 function requireEnv(key: string): string {
@@ -44,10 +45,23 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Write brief.json for the web UI
-  fs.mkdirSync("docs", { recursive: true });
-  fs.writeFileSync("docs/brief.json", JSON.stringify(brief, null, 2));
-  console.log("  → Wrote docs/brief.json");
+  // Write dated brief — MM-DD.json rolls over after a year (max 366 files)
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const mmdd = String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+  const briefsDir = "docs/briefs";
+  fs.mkdirSync(briefsDir, { recursive: true });
+  fs.writeFileSync(`${briefsDir}/${mmdd}.json`, JSON.stringify(brief, null, 2));
+  console.log(`  → Wrote ${briefsDir}/${mmdd}.json`);
+
+  // Update manifest
+  const manifestPath = `${briefsDir}/manifest.json`;
+  const manifest: string[] = fs.existsSync(manifestPath)
+    ? JSON.parse(fs.readFileSync(manifestPath, "utf-8"))
+    : [];
+  if (!manifest.includes(mmdd)) manifest.push(mmdd);
+  manifest.sort();
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log(`  → Updated manifest (${manifest.length} briefs stored)`);
 
   if (!noSend) {
     const telegramMsg = buildTelegramMessage(brief, config.pagesUrl);

@@ -40,8 +40,53 @@
       border-bottom: 1px solid var(--border);
     }
     .header h1 { font-size: 22px; font-weight: 700; }
-    .header h1 span { opacity: 0.45; font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .generated-at { font-size: 13px; color: var(--muted); }
+
+    /* Date selector */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .date-nav button {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .date-nav button:hover { border-color: var(--accent); }
+    .date-nav button:disabled { opacity: 0.3; cursor: default; }
+    .date-nav select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b92b3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .date-nav select:focus { outline: none; border-color: var(--accent); }
+    .today-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
 
     /* State */
     .state-msg { text-align: center; padding: 80px 20px; color: var(--muted); }
@@ -58,10 +103,9 @@
     .tldr-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
     .tldr p { font-size: 15px; }
 
-    /* Two-col cards */
+    /* Cards */
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     @media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
-
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -73,66 +117,34 @@
     .card-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
     .card p { font-size: 14px; }
 
-    /* Sites grid */
+    /* Sites */
     .sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; margin-bottom: 16px; }
     @media (max-width: 640px) { .sites-grid { grid-template-columns: 1fr; } }
-
     .site-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-
     .site-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       background: var(--surface2);
     }
     .site-name { font-size: 16px; font-weight: 700; }
     .site-location { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    .verdict-badge {
-      flex-shrink: 0;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
+    .verdict-badge { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
     .verdict-FLY      { background: rgba(34,197,94,0.15);  color: var(--fly);      border: 1px solid rgba(34,197,94,0.3); }
     .verdict-MARGINAL { background: rgba(245,158,11,0.15); color: var(--marginal); border: 1px solid rgba(245,158,11,0.3); }
     .verdict-NO-FLY   { background: rgba(239,68,68,0.15);  color: var(--nofly);    border: 1px solid rgba(239,68,68,0.3); }
-
     .site-body { padding: 16px 18px; }
-
-    .site-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 16px;
-      padding-bottom: 14px;
-      margin-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
+    .site-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
     .meta-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
     .meta-value { font-size: 13px; font-weight: 600; }
-
     .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin: 12px 0 5px; }
     .section-text { font-size: 14px; line-height: 1.6; }
-
     .hazard-text { color: var(--marginal); }
 
-    details summary {
-      cursor: pointer;
-      font-size: 12px;
-      color: var(--accent);
-      margin-top: 14px;
-      list-style: none;
-      user-select: none;
-    }
+    details summary { cursor: pointer; font-size: 12px; color: var(--accent); margin-top: 14px; list-style: none; user-select: none; }
     details summary::before { content: "▶  "; font-size: 10px; }
     details[open] summary::before { content: "▼  "; }
     .detail-body { margin-top: 10px; }
-
     .hourly-window { padding: 8px 0; border-bottom: 1px solid var(--border); }
     .hourly-window:last-child { border-bottom: none; }
     .hourly-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
@@ -148,32 +160,135 @@
     .watchlist-text { color: var(--marginal); font-size: 14px; }
     .watchlist-clear { color: var(--muted); font-size: 14px; }
 
+    /* Historical banner */
+    .history-banner {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
     .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>🪂 Paragliding Brief <span id="header-date"></span></h1>
-    <div class="generated-at" id="generated-at">Loading...</div>
+    <h1>🪂 Paragliding Brief</h1>
+    <div class="header-right">
+      <div class="date-nav">
+        <button id="btn-prev" title="Previous day">‹</button>
+        <select id="date-select" aria-label="Select date"></select>
+        <button id="btn-next" title="Next day">›</button>
+      </div>
+      <div class="generated-at" id="generated-at"></div>
+    </div>
   </div>
   <div id="content">
-    <div class="state-msg"><div class="icon">🌤️</div><div>Loading today's brief...</div></div>
+    <div class="state-msg"><div class="icon">🌤️</div><div>Loading...</div></div>
   </div>
 </div>
 
 <script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let availableDates = [];   // ["01-15", "01-16", ...] sorted ascending
+  let currentIdx = -1;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
   function verdictClass(v) {
-    if (!v) return "";
-    return "verdict-" + v.replace(/\s+/g, "-").toUpperCase();
+    return "verdict-" + String(v ?? "").replace(/\s+/g, "-").toUpperCase();
   }
 
-  function render(b) {
-    document.getElementById("header-date").textContent = b.date ? "— " + b.date : "";
+  function mmddToLabel(mmdd) {
+    const [mm, dd] = mmdd.split("-");
+    const d = new Date(2000, parseInt(mm) - 1, parseInt(dd));
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  function todayMmdd() {
+    const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    return String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  // ── Nav controls ───────────────────────────────────────────────────────────
+  function updateNav() {
+    document.getElementById("btn-prev").disabled = currentIdx <= 0;
+    document.getElementById("btn-next").disabled = currentIdx >= availableDates.length - 1;
+    document.getElementById("date-select").value = availableDates[currentIdx] ?? "";
+  }
+
+  document.getElementById("btn-prev").addEventListener("click", () => {
+    if (currentIdx > 0) loadByIdx(currentIdx - 1);
+  });
+  document.getElementById("btn-next").addEventListener("click", () => {
+    if (currentIdx < availableDates.length - 1) loadByIdx(currentIdx + 1);
+  });
+  document.getElementById("date-select").addEventListener("change", (e) => {
+    const idx = availableDates.indexOf(e.target.value);
+    if (idx !== -1) loadByIdx(idx);
+  });
+
+  // ── Load manifest then today's brief ──────────────────────────────────────
+  async function init() {
+    try {
+      const res = await fetch("./briefs/manifest.json?t=" + Date.now());
+      if (!res.ok) throw new Error("manifest not found — has the agent run yet?");
+      availableDates = await res.json(); // ["01-15", "03-21", ...]
+
+      // Populate select
+      const sel = document.getElementById("date-select");
+      sel.innerHTML = "";
+      const today = todayMmdd();
+      // Show newest first in the dropdown
+      [...availableDates].reverse().forEach(mmdd => {
+        const opt = document.createElement("option");
+        opt.value = mmdd;
+        opt.textContent = mmddToLabel(mmdd) + (mmdd === today ? " ★" : "");
+        sel.appendChild(opt);
+      });
+
+      // Default to today if available, else most recent
+      const todayIdx = availableDates.indexOf(today);
+      loadByIdx(todayIdx !== -1 ? todayIdx : availableDates.length - 1);
+    } catch (e) {
+      document.getElementById("content").innerHTML = `
+        <div class="state-msg">
+          <div class="icon">⚠️</div>
+          <div>${esc(String(e))}</div>
+        </div>`;
+    }
+  }
+
+  async function loadByIdx(idx) {
+    currentIdx = idx;
+    updateNav();
+    const mmdd = availableDates[idx];
+    document.getElementById("date-select").value = mmdd;
+    document.getElementById("content").innerHTML = `<div class="state-msg"><div class="icon">⏳</div><div>Loading ${mmddToLabel(mmdd)}...</div></div>`;
+    document.getElementById("generated-at").textContent = "";
+
+    try {
+      const res = await fetch(`./briefs/${mmdd}.json?t=` + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      render(await res.json(), mmdd);
+    } catch (e) {
+      document.getElementById("content").innerHTML = `
+        <div class="state-msg"><div class="icon">⚠️</div><div>Could not load brief for ${mmddToLabel(mmdd)}: ${esc(String(e))}</div></div>`;
+    }
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function render(b, mmdd) {
+    const isToday = mmdd === todayMmdd();
+
     if (b.generatedAt) {
       const d = new Date(b.generatedAt).toLocaleString("en-US", {
         timeZone: "America/Los_Angeles",
@@ -185,15 +300,20 @@
 
     let html = "";
 
+    // Historical banner if not today
+    if (!isToday) {
+      html += `<div class="history-banner">📅 Viewing historical brief for ${esc(b.date ?? mmddToLabel(mmdd))} — compare with actual conditions to calibrate accuracy</div>`;
+    }
+
     // TL;DR
     html += `<div class="tldr"><div class="tldr-label">TL;DR</div><p>${esc(b.tldr)}</p></div>`;
 
-    // Upper Air + Aviation Flags
+    // Upper Air + Aviation
     const flagsClear = (b.aviationFlags ?? "").toLowerCase().trim() === "clear";
-    html += `<div class="two-col">`;
-    html += `<div class="card no-margin"><div class="card-title">Upper Air & Sounding (OAK)</div><p>${esc(b.upperAir)}</p></div>`;
-    html += `<div class="card no-margin"><div class="card-title">Aviation Flags</div><p style="${flagsClear ? "color:var(--muted)" : "color:var(--marginal)"}">${esc(b.aviationFlags)}</p></div>`;
-    html += `</div>`;
+    html += `<div class="two-col">
+      <div class="card no-margin"><div class="card-title">Upper Air & Sounding (OAK)</div><p>${esc(b.upperAir)}</p></div>
+      <div class="card no-margin"><div class="card-title">Aviation Flags</div><p style="${flagsClear ? "color:var(--muted)" : "color:var(--marginal)"}">${esc(b.aviationFlags)}</p></div>
+    </div>`;
 
     // Sites
     html += `<div class="sites-grid">`;
@@ -201,7 +321,6 @@
       const v = site.verdict ?? {};
       const vc = verdictClass(v.verdict);
       const hasHazards = v.hazards && v.hazards.toLowerCase() !== "none" && v.hazards.trim() !== "";
-
       html += `<div class="site-card">
         <div class="site-header">
           <div>
@@ -259,21 +378,7 @@
     document.getElementById("content").innerHTML = html;
   }
 
-  async function load() {
-    try {
-      const res = await fetch("./brief.json?t=" + Date.now());
-      if (!res.ok) throw new Error("HTTP " + res.status + " — has the agent run yet?");
-      render(await res.json());
-    } catch (e) {
-      document.getElementById("content").innerHTML = `
-        <div class="state-msg">
-          <div class="icon">⚠️</div>
-          <div>Could not load brief — ${esc(String(e))}</div>
-        </div>`;
-    }
-  }
-
-  load();
+  init();
 </script>
 </body>
 </html>
