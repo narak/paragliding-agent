@@ -150,12 +150,15 @@
     .hourly-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
     .hourly-text { font-size: 13px; }
 
-    /* Outlook */
-    .outlook-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    @media (max-width: 640px) { .outlook-grid { grid-template-columns: 1fr; } }
-    .outlook-day { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
-    .outlook-day-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
-    .outlook-day p { font-size: 13px; }
+    /* Outlook matrix */
+    .outlook-matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .outlook-matrix th, .outlook-matrix td { padding: 10px 12px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+    .outlook-matrix thead th { background: var(--surface2); font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+    .outlook-matrix tbody tr:hover td { background: rgba(255,255,255,0.02); }
+    .outlook-matrix .site-col { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; min-width: 110px; }
+    .outlook-matrix .analysis-cell { color: var(--muted); line-height: 1.5; }
+    .outlook-matrix .emoji-indicator { font-size: 15px; margin-right: 5px; flex-shrink: 0; }
+    .outlook-matrix .cell-inner { display: flex; align-items: flex-start; gap: 4px; }
 
     .watchlist-text { color: var(--marginal); font-size: 14px; }
     .watchlist-clear { color: var(--muted); font-size: 14px; }
@@ -356,14 +359,63 @@
     }
     html += `</div>`;
 
-    // 3-Day Outlook
+    // 3-Day Outlook matrix (sites = rows, days = columns)
+    function outlookEmoji(text) {
+      const t = (text ?? "").toLowerCase();
+      if (/\bno.fly\b|not flyable|unflyable|avoid|too strong|dangerous/.test(t)) return "❌";
+      if (/\bmarginal\b|caution|watch|deteriorat|gusty|uncertain|tricky|limited/.test(t)) return "⚠️";
+      if (/\bgood\b|great|excellent|solid|ideal|flyable|clean|prime|strong thermal/.test(t)) return "✅";
+      return "🔵"; // neutral / unclear
+    }
+
+    function buildOutlookMatrix(outlook) {
+      if (!outlook) return "<p style='color:var(--muted)'>No outlook data.</p>";
+      const days = [
+        { key: "tomorrow", label: "Tomorrow" },
+        { key: "day2",     label: "Day 2" },
+        { key: "day3",     label: "Day 3" },
+      ];
+
+      // Collect all unique site names across all days
+      const siteNames = [];
+      for (const { key } of days) {
+        for (const entry of (outlook[key] ?? [])) {
+          if (entry.name && !siteNames.includes(entry.name)) siteNames.push(entry.name);
+        }
+      }
+      if (siteNames.length === 0) return "<p style='color:var(--muted)'>No outlook data.</p>";
+
+      // Build lookup: day -> site -> analysis
+      const lookup = {};
+      for (const { key } of days) {
+        lookup[key] = {};
+        for (const entry of (outlook[key] ?? [])) {
+          lookup[key][entry.name] = entry.analysis ?? "";
+        }
+      }
+
+      let t = `<table class="outlook-matrix"><thead><tr>`;
+      t += `<th>Site</th>`;
+      for (const { label } of days) t += `<th>${label}</th>`;
+      t += `</tr></thead><tbody>`;
+
+      for (const site of siteNames) {
+        t += `<tr><td class="site-col">${esc(site)}</td>`;
+        for (const { key } of days) {
+          const analysis = lookup[key][site] ?? "—";
+          const emoji = analysis === "—" ? "" : outlookEmoji(analysis);
+          t += `<td class="analysis-cell"><div class="cell-inner"><span class="emoji-indicator">${emoji}</span><span>${esc(analysis)}</span></div></td>`;
+        }
+        t += `</tr>`;
+      }
+
+      t += `</tbody></table>`;
+      return t;
+    }
+
     html += `<div class="card">
       <div class="card-title">3-Day Outlook</div>
-      <div class="outlook-grid">
-        <div class="outlook-day"><div class="outlook-day-label">Tomorrow</div><p>${esc(b.outlook?.tomorrow)}</p></div>
-        <div class="outlook-day"><div class="outlook-day-label">Day 2</div><p>${esc(b.outlook?.day2)}</p></div>
-        <div class="outlook-day"><div class="outlook-day-label">Day 3</div><p>${esc(b.outlook?.day3)}</p></div>
-      </div>
+      ${buildOutlookMatrix(b.outlook)}
     </div>`;
 
     // Watchlist

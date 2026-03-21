@@ -358,9 +358,24 @@ The JSON must match this exact schema:
     }
   ],
   "outlook": {
-    "tomorrow": "<one sentence per site, site name first>",
-    "day2": "<same format>",
-    "day3": "<same format>"
+    "tomorrow": [
+      {
+        "name": "<sitename>",
+        "analysis": "<brief site analysis>"
+      }
+    ],
+    "day2": [
+      {
+        "name": "<sitename>",
+        "analysis": "<brief site analysis>"
+      }
+    ],
+    "day3": [
+      {
+        "name": "<sitename>",
+        "analysis": "<brief site analysis>"
+      }
+    ]
   },
   "watchlist": "<anything worth monitoring or 'Nothing flagged'>",
   "tldr": "<2-3 sentences. Best site, best window, one-line reason. Casual tone.>"
@@ -416,7 +431,8 @@ export async function generateBrief(
   try {
     return JSON.parse(cleaned) as BriefJson;
   } catch (e) {
-    throw new Error(`Failed to parse Claude response as JSON: ${e}\n\nRaw response:\n${raw.slice(0, 500)}`);
+    console.log(raw);
+    throw new Error(`Failed to parse Claude response as JSON: ${e}\n\nRaw response:\n`);
   }
 }
 
