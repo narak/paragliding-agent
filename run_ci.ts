@@ -7,7 +7,7 @@
 
 import fs from "fs";
 import path from "path";
-import { runAgent, sendTelegram, buildTelegramMessage, parseSites } from "./agent.js";
+import { runAgent, sendTelegram, buildTelegramMessage, localNow } from "./agent.js";
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -20,14 +20,14 @@ async function main(): Promise<void> {
     anthropicApiKey: requireEnv("ANTHROPIC_API_KEY"),
     telegramBotToken: requireEnv("TELEGRAM_BOT_TOKEN"),
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
-    sites: requireEnv("SITES"),
+    sites: process.env["SITES"] || undefined,
     pagesUrl: process.env["PAGES_URL"],
   };
 
   const brief = await runAgent(config);
 
   // Write dated brief — MM-DD.json rolls over after a year (max 366 files)
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const now = localNow();
   const mmdd = String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
   const briefsDir = path.join("docs", "briefs");
   fs.mkdirSync(briefsDir, { recursive: true });

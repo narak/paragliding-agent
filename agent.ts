@@ -45,6 +45,11 @@ export interface SiteBrief {
   verdict: SiteVerdict;
 }
 
+export interface OutlookEntry {
+  name: string;
+  analysis: string;
+}
+
 export interface BriefJson {
   generatedAt: string;          // ISO timestamp
   date: string;                 // "Saturday, March 21, 2026"
@@ -52,9 +57,9 @@ export interface BriefJson {
   aviationFlags: string;        // AIRMETs / METARs summary
   sites: SiteBrief[];
   outlook: {
-    tomorrow: string;
-    day2: string;
-    day3: string;
+    tomorrow: OutlookEntry[];
+    day2: OutlookEntry[];
+    day3: OutlookEntry[];
   };
   watchlist: string;
   tldr: string;
@@ -432,7 +437,7 @@ export async function generateBrief(
     return JSON.parse(cleaned) as BriefJson;
   } catch (e) {
     console.log(raw);
-    throw new Error(`Failed to parse Claude response as JSON: ${e}\n\nRaw response:\n`);
+    throw new Error(`Failed to parse Claude response as JSON: ${e}\n\nRaw response:\n${raw}`);
   }
 }
 
@@ -463,7 +468,6 @@ export function buildTelegramMessage(brief: BriefJson, pagesUrl?: string): strin
     }
   }
 
-  lines.push("");
   if (pagesUrl) {
     lines.push("");
     lines.push(`🔗 <a href="${escapeHtml(pagesUrl)}">Full brief & site details</a>`);
@@ -528,7 +532,7 @@ export async function runAgent(config: AgentConfig): Promise<BriefJson> {
 
   console.log("  → Fetching OAK sounding...");
   const sounding = await fetchSounding(SOUNDING_STATION);
-  dataParts.push(`\n=== Sounding Data (OAK ${SOUNDING_STATION}) ===\n${sounding}`);
+  dataParts.push(`\n=== Sounding Data (${SOUNDING_STATION}) ===\n${sounding}`);
 
   console.log("  → Fetching METARs...");
   const metars = await fetchMetars(METAR_STATIONS);
