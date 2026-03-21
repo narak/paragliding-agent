@@ -115,7 +115,6 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
 
 export async function fetchSounding(station: string): Promise<string> {
   // IEM (Iowa State) JSON sounding API — reliable near-real-time data from SPC.
-  // Replaces the Wyoming bufrraob endpoint which is consistently unreliable.
   // Soundings launch at 00Z and 12Z. We try the most recent cycle first,
   // then fall back to the prior one if balloon data isn't uploaded yet.
   const nowUtc = new Date();
@@ -137,36 +136,24 @@ export async function fetchSounding(station: string): Promise<string> {
     `https://mesonet.agron.iastate.edu/json/raob.py` +
     `?ts=${buildTimestamp(nowUtc, h)}&station=${station}&fmt=json`;
 
+  // Actual field names from IEM API response
   interface SoundingLevel {
-    pressure: number;
-    height: number;
-    tmpc: number;
-    dwpc: number;
-    drct: number;
-    speed: number;
-    levelcode: number;
+    pres: number;   // pressure mb
+    hght: number;   // height m ASL
+    tmpc: number;   // temp C
+    dwpc: number;   // dewpoint C
+    drct: number;   // wind direction degrees
+    sknt: number;   // wind speed knots
   }
   interface SoundingResponse {
     profiles?: Array<{
-      station: string;
-      valid: string;
       profile: SoundingLevel[];
-      sbcape?: number;
-      sbcin?: number;
-      pwater?: number;
-      lcl_hght?: number;
-      lfc_pressure?: number;
-      el_hght?: number;
-      total_totals?: number;
-      sweat_index?: number;
-      lifted_index?: number;
+      station: string;
     }>;
   }
 
   const tryFetch = async (h: number): Promise<SoundingResponse | null> => {
     try {
-            console.log('buildUrl', buildUrl(h));
-
       const res = await fetchWithTimeout(buildUrl(h));
       if (!res.ok) return null;
       const data = await res.json() as SoundingResponse;
@@ -178,39 +165,49 @@ export async function fetchSounding(station: string): Promise<string> {
   };
 
   const data = (await tryFetch(primaryHour)) ?? (await tryFetch(fallbackHour));
-  console.log('data', JSON.stringify(data, undefined, '  '));
 
   if (!data?.profiles?.length) {
     return `Sounding unavailable for ${station} — both cycles returned no data.`;
   }
 
-  const p = data.profiles[0];
+  const levels = data.profiles[0].profile;
+  const ts = data.profiles[0].station ?? "unknown";
+
   const lines: string[] = [
-    `Station: ${p.station}  Valid: ${p.valid} UTC`,
-    `Lifted Index: ${p.lifted_index ?? "N/A"}`,
-    `SBCAPE: ${p.sbcape ?? "N/A"} J/kg  SBCIN: ${p.sbcin ?? "N/A"} J/kg`,
-    `Precipitable Water: ${p.pwater ?? "N/A"} mm`,
-    `LCL Height: ${p.lcl_hght ?? "N/A"}m  LFC: ${p.lfc_pressure ?? "N/A"}mb  EL: ${p.el_hght ?? "N/A"}m`,
-    `Total Totals: ${p.total_totals ?? "N/A"}  SWEAT Index: ${p.sweat_index ?? "N/A"}`,
+    `Station: ${station}  Valid: ${ts} UTC`,
     "",
     "Pres(mb)  Hght(m)  Temp(C)  Dwpt(C)  WindDir  WindKt",
   ];
 
-  // Surface + key pressure levels for paragliding (850mb ~1500m, 700mb ~3000m)
+  // Surface level + key pressure levels for paragliding (850mb ~1500m, 700mb ~3000m, 500mb ~5500m)
   const keyPressures = [850, 700, 500];
-  const relevantLevels = p.profile.filter(
-    (l) => l.levelcode === 9 || keyPressures.some((kp) => Math.abs(l.pressure - kp) < 5)
+  const surface = levels.reduce((a, b) => (a.pres > b.pres ? a : b)); // highest pressure = surface
+
+  const relevantLevels = levels.filter(
+    (l) =>
+      l.pres === surface.pres ||
+      keyPressures.some((kp) => Math.abs(l.pres - kp) < 5)
   );
 
   for (const lvl of relevantLevels) {
+    // Derived: temp/dewpoint spread indicates moisture/cloud base
+    const spread = (lvl.tmpc - lvl.dwpc).toFixed(1);
     lines.push(
-      `${String(lvl.pressure).padStart(8)}  ` +
-      `${String(lvl.height).padStart(7)}  ` +
+      `${String(lvl.pres).padStart(8)}  ` +
+      `${String(lvl.hght).padStart(7)}  ` +
       `${String(lvl.tmpc).padStart(7)}  ` +
       `${String(lvl.dwpc).padStart(7)}  ` +
       `${String(lvl.drct).padStart(7)}  ` +
-      `${String(lvl.speed).padStart(6)}`
+      `${String(lvl.sknt).padStart(6)}  spread:${spread}`
     );
+  }
+
+  // Surface-based instability: simple lapse rate between surface and 850mb
+  const sfc = surface;
+  const mb850 = levels.find((l) => Math.abs(l.pres - 850) < 5);
+  if (sfc && mb850) {
+    const lapseRate = ((sfc.tmpc - mb850.tmpc) / ((mb850.hght - sfc.hght) / 1000)).toFixed(2);
+    lines.push(`\nLapse rate surface→850mb: ${lapseRate}°C/km (dry adiabatic = 9.8, moist = ~6.5)`);
   }
 
   return lines.join("\n").slice(0, 3000);
@@ -228,26 +225,70 @@ export async function fetchMetars(stations: string[]): Promise<string> {
 }
 
 export async function fetchAirmets(): Promise<string> {
+  // Bay Area falls under SFO ARTCC. The API uses two-letter region codes.
+  // From observed responses: "SF" = San Francisco region (ZOA ARTCC).
+  // We also include "SFO" as a fallback in case the API changes.
+  const BAY_AREA_REGIONS = ["SF", "SFO"];
+  const RELEVANT_HAZARDS = ["TURB", "IFR", "LLWS", "SFC-WIND", "MT-OBSC", "ICE"];
+
+  interface AirmetItem {
+    region: string;
+    airmetType: string;
+    hazard: string;
+    validTimeFrom: number;
+    validTimeTo: number;
+    top?: number;
+    base?: number;
+    receiptTime?: string;
+  }
+
   try {
-    const res = await fetchWithTimeout("https://aviationweather.gov/api/data/airmet?format=json");
-    if (!res.ok) throw new Error(`AIRMET ${res.status}`);
-    const data = await res.json() as { features: Array<{ properties: Record<string, string> }> };
+    const res = await fetchWithTimeout(
+      "https://aviationweather.gov/api/data/airmet?format=json"
+    );
+    if (!res.ok) throw new Error(`AIRMET HTTP ${res.status}`);
 
-    const relevant = data.features
-      .map((f) => f.properties)
-      .filter((p) => {
-        const hazard = p.hazard ?? "";
-        const area = JSON.stringify(p.area ?? "");
-        return (
-          ["TURB", "IFR", "LLWS"].includes(hazard) &&
-          ["SFO", "OAK", "ZOA"].some((id) => area.includes(id))
-        );
+    const raw = await res.json() as unknown;
+
+    // API returns a plain array — not GeoJSON
+    if (!Array.isArray(raw)) {
+      console.warn("  ⚠ Unexpected AIRMET shape:", JSON.stringify(raw).slice(0, 200));
+      return "AIRMETs: unexpected response format.";
+    }
+
+    if (raw.length === 0) return "No active AIRMETs.";
+
+    const items = raw as AirmetItem[];
+
+    // Filter to Bay Area regions and relevant hazards
+    const relevant = items.filter(
+      (item) =>
+        BAY_AREA_REGIONS.includes(item.region?.toUpperCase()) &&
+        RELEVANT_HAZARDS.includes(item.hazard?.toUpperCase())
+    );
+
+    if (relevant.length === 0) {
+      // Also show all unique regions present so we can debug if Bay Area code changes
+      const regions = [...new Set(items.map((i) => i.region))].join(", ");
+      return `No active AIRMETs for Bay Area (SF region). Active regions: ${regions}`;
+    }
+
+    const now = Date.now() / 1000;
+    return relevant
+      .map((item) => {
+        const validTo = new Date(item.validTimeTo * 1000).toUTCString().slice(17, 22); // HH:MM
+        const altRange =
+          item.base != null && item.top != null
+            ? ` FL${item.base}–FL${item.top}`
+            : item.top != null
+            ? ` below FL${item.top}`
+            : "";
+        const active = item.validTimeTo > now ? "" : " [EXPIRED]";
+        return `AIRMET ${item.hazard}${altRange} — region ${item.region}, valid until ${validTo}Z${active}`;
       })
-      .map((p) => `AIRMET ${p.hazard}: ${p.synopsis ?? "See full advisory"}`);
-
-    return relevant.length > 0 ? relevant.join("\n") : "No active AIRMETs for the Bay Area.";
+      .join("\n");
   } catch (e) {
-    return `AIRMET fetch failed: ${e}`;
+    return `AIRMETs unavailable: ${e}`;
   }
 }
 
@@ -427,11 +468,10 @@ export async function runAgent(config: AgentConfig): Promise<string> {
   dataParts.push(`\n=== AIRMETs (Bay Area) ===\n${airmets}`);
 
   const combined = dataParts.join("\n");
-//   console.log(`  → Sending ${combined.length} chars to Claude...`);
-console.log(combined);
+  console.log(`  → Sending ${combined.length} chars to Claude...`,  combined);
 
 //   const brief = await generateBrief(combined, config.anthropicApiKey);
-//   console.log("  → Brief generated.");
+  console.log("  → Brief generated.");
 
   return brief;
 }
