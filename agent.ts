@@ -123,7 +123,6 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
       "windspeed_10m", "winddirection_10m",
       "windspeed_80m", "winddirection_80m",
       "windspeed_120m", "winddirection_120m",
-      "windspeed_180m", "winddirection_180m",
       "cape",
       "boundary_layer_height",
       "precipitation_probability",
@@ -131,7 +130,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
       "visibility",
     ].join(","),
     wind_speed_unit: "kn",
-    forecast_days: "4",
+    forecast_days: "3",
     timezone: LOCAL_TZ,
   });
 
@@ -335,10 +334,13 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string): 
     "Date        Hour  Wind10m        Wind80m   Wind120m  BL_Ht   CAPE  Precip  Cloud",
   ];
 
+  const today = localDateString();
   hourly.time.forEach((t, i) => {
     if (!dates.includes(t.slice(0, 10))) return;
     const hour = parseInt(t.slice(11, 13), 10);
-    if (hour < 7 || hour > 18) return;
+    if (hour < 8 || hour > 17) return; // 8 AM–5 PM flying window
+    // For days 2+, only emit every 2 hours to keep context size manageable
+    if (t.slice(0, 10) !== today && hour % 2 !== 0) return;
 
     const v = (key: keyof typeof hourly): string => {
       const arr = hourly[key] as number[];
@@ -419,6 +421,9 @@ Day 3: [same]
 
 WATCHLIST:
 [Anything worth a call to the site pilot or extra monitoring. "Nothing flagged" if clean.]
+
+TL;DR:
+[2-3 sentences max. Best site today, best window, one-line reason. Written like a text to a friend who has 10 seconds to read it.]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Rules:
@@ -426,8 +431,7 @@ Rules:
 - Do not pad with generic safety disclaimers. This pilot knows the sites.
 - Coastal sites (Mussel Rock, Fort Funston): focus on ridge lift mechanics, marine layer, sea breeze timing, rotor risk from NW/NE winds.
 - Thermal sites (Ed Levin, inland): focus on thermal quality, valley breeze cycle, sea breeze front arrival, afternoon instability.
-- P2 can handle light-moderate conditions in benign air — flag anything punchy, 
-  gusty, or requiring active piloting as beyond their limits.
+- P2 can handle light-moderate conditions in benign air — flag anything punchy, gusty, or requiring active piloting as beyond their limits.
 - P3 can handle moderate-strong conditions — calibrate language accordingly.
 - If a site has no viable window, say so clearly and move on.`;
 };
@@ -451,7 +455,7 @@ export async function generateBrief(
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         // model: "claude-haiku-4-5-20251001",
-        max_tokens: 2048,
+        max_tokens: 8192,
         system,
         messages: [
           {
@@ -480,9 +484,26 @@ export async function sendTelegram(
   botToken: string,
   chatId: string
 ): Promise<void> {
+  // Split on paragraph boundaries so messages never cut mid-sentence.
+  // Telegram hard limit is 4096 chars — we target 3800 to leave headroom.
   const chunks: string[] = [];
-  for (let i = 0; i < message.length; i += 4000) {
-    chunks.push(message.slice(i, i + 4000));
+  const LIMIT = 3800;
+
+  if (message.length <= LIMIT) {
+    chunks.push(message);
+  } else {
+    let remaining = message;
+    while (remaining.length > LIMIT) {
+      // Find the last double-newline within the limit
+      let splitAt = remaining.lastIndexOf("\n\n", LIMIT);
+      // Fall back to last single newline if no paragraph break found
+      if (splitAt === -1) splitAt = remaining.lastIndexOf("\n", LIMIT);
+      // Last resort: hard cut at limit
+      if (splitAt === -1) splitAt = LIMIT;
+      chunks.push(remaining.slice(0, splitAt).trimEnd());
+      remaining = remaining.slice(splitAt).trimStart();
+    }
+    if (remaining.length > 0) chunks.push(remaining);
   }
 
   for (const chunk of chunks) {
