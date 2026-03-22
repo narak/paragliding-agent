@@ -37,6 +37,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SITES: ${{ vars.SITES }}
           PAGES_URL: ${{ vars.PAGES_URL }}
+          TOMORROW_IO_API_KEY: ${{ secrets.TOMORROW_IO_API_KEY }}
         run: npm start   # runs dist/run_ci.js — writes docs/briefs/MM-DD.json
 
       - name: Build frontend

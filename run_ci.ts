@@ -22,6 +22,7 @@ async function main(): Promise<void> {
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
     sites: process.env["SITES"] || undefined,
     pagesUrl: process.env["PAGES_URL"],
+    tomorrowIoApiKey: process.env["TOMORROW_IO_API_KEY"] || undefined,
   };
 
   const brief = await runAgent(config);

@@ -17,6 +17,7 @@ export interface AgentConfig {
   telegramChatId: string;
   sites?: string;
   pagesUrl?: string; // e.g. https://username.github.io/paragliding-agent
+  tomorrowIoApiKey?: string;
 }
 
 // ── Brief JSON Schema ──────────────────────────────────────────────────────────
@@ -153,6 +154,21 @@ export async function fetchWithTimeout(
   } finally {
     clearTimeout(id);
   }
+}
+
+/** Returns the local clock hour of sunset (approximate, ±10 min) for a given lat/lon and date. */
+function sunsetLocalHour(lat: number, lon: number, localDate: Date): number {
+  const startOfYear = new Date(localDate.getFullYear(), 0, 0);
+  const dayOfYear = Math.round((localDate.getTime() - startOfYear.getTime()) / 86400000);
+  const decl = 23.45 * Math.sin((2 * Math.PI / 365) * (dayOfYear - 81));
+  const cosHa = -Math.tan(lat * Math.PI / 180) * Math.tan(decl * Math.PI / 180);
+  const hourAngle = cosHa >= 1 ? 0 : cosHa <= -1 ? 180 : Math.acos(cosHa) * 180 / Math.PI;
+  const sunsetUtc = (12 - lon / 15) + hourAngle / 15;
+  // Derive local UTC offset from the runtime timezone
+  const utcMs = new Date(localDate.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
+  const localMs = new Date(localDate.toLocaleString("en-US", { timeZone: LOCAL_TZ })).getTime();
+  const utcOffsetHours = (localMs - utcMs) / 3600000;
+  return sunsetUtc + utcOffsetHours;
 }
 
 async function fetchWithRetry(
@@ -323,11 +339,12 @@ export async function fetchHrrrSummary(lat: number, lon: number, siteName: strin
     const today = localDateString();
     const dates = [today, (() => { const d = new Date(localNow()); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); })()];
 
+    const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
     const lines = [`\n=== HRRR Model: ${siteName} ===`, "Date        Hour  Wind10m        Wind80m   BL_Ht   CAPE  Precip  Cloud"];
     hourly.time.forEach((t, i) => {
       if (!dates.includes(t.slice(0, 10))) return;
       const hour = parseInt(t.slice(11, 13), 10);
-      if (hour < 8 || hour > 17) return;
+      if (hour < 8 || hour > sunset) return;
       if (t.slice(0, 10) !== today && hour % 2 !== 0) return;
       const v = (key: keyof typeof hourly): string => {
         const arr = hourly[key] as number[];
@@ -383,11 +400,77 @@ export async function fetchNdbcBuoys(buoys: { id: string; name: string }[]): Pro
   return results.join("\n");
 }
 
+interface TomorrowIoResponse {
+  timelines: {
+    hourly: Array<{
+      time: string;
+      values: {
+        windSpeed: number;
+        windDirection: number;
+        windGust: number;
+        temperature: number;
+        cloudCover: number;
+        precipitationProbability: number;
+        visibility: number;
+        pressureSurfaceLevel: number;
+      };
+    }>;
+  };
+}
+
+export async function fetchTomorrowIo(lat: number, lon: number, siteName: string, apiKey: string): Promise<string> {
+  const params = new URLSearchParams({
+    location: `${lat},${lon}`,
+    timesteps: "1h",
+    units: "metric",
+    apikey: apiKey,
+  });
+  try {
+    const res = await fetchWithRetry(`https://api.tomorrow.io/v4/weather/forecast?${params}`, {}, 20000);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    const data = await res.json() as TomorrowIoResponse;
+
+    const today = localDateString();
+    const dates = Array.from({ length: 2 }, (_, i) => {
+      const d = new Date(localNow());
+      d.setDate(d.getDate() + i);
+      return d.toISOString().slice(0, 10);
+    });
+
+    const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
+    const lines = [
+      `\n=== Tomorrow.io: ${siteName} ===`,
+      "Date        Hour  Wind10m(kn)@Dir  Gust(kn)  Temp(C)  Cloud  Precip  Visibility(km)  Pressure(hPa)",
+    ];
+
+    for (const hour of data.timelines.hourly) {
+      const dateStr = hour.time.slice(0, 10);
+      if (!dates.includes(dateStr)) continue;
+      const h = parseInt(hour.time.slice(11, 13), 10);
+      if (h < 8 || h > sunset) continue;
+      if (dateStr !== today && h % 2 !== 0) continue;
+      const v = hour.values;
+      const windKts = (v.windSpeed * 1.944).toFixed(1);
+      const gustKts = (v.windGust * 1.944).toFixed(1);
+      lines.push(
+        `${dateStr}  ${String(h).padStart(2, "0")}:00  ` +
+        `${windKts}kn@${Math.round(v.windDirection)}°  ${gustKts}kn  ` +
+        `${v.temperature.toFixed(1)}  ${Math.round(v.cloudCover)}%  ` +
+        `${Math.round(v.precipitationProbability)}%  ${v.visibility.toFixed(1)}  ${Math.round(v.pressureSurfaceLevel)}`
+      );
+    }
+    return lines.join("\n");
+  } catch (e) {
+    return `\n=== Tomorrow.io: ${siteName} ===\nUnavailable: ${e}`;
+  }
+}
+
 // ── Data Formatting ────────────────────────────────────────────────────────────
 
-export function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
+export function extractDailySummary(data: OpenMeteoResponse, siteName: string, lat: number, lon: number): string {
   const { hourly } = data;
   const today = localDateString();
+  const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
   const dates = Array.from({ length: 4 }, (_, i) => {
     const d = new Date(localNow());
     d.setDate(d.getDate() + i);
@@ -399,7 +482,7 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string): 
   hourly.time.forEach((t, i) => {
     if (!dates.includes(t.slice(0, 10))) return;
     const hour = parseInt(t.slice(11, 13), 10);
-    if (hour < 8 || hour > 17) return;
+    if (hour < 8 || hour > sunset) return;
     if (t.slice(0, 10) !== today && hour % 2 !== 0) return;
 
     const v = (key: keyof typeof hourly): string => {
@@ -432,6 +515,7 @@ ${siteList}
 You will be given raw meteorological data from multiple sources:
 - Open-Meteo (GFS model): 4-day hourly forecast per site
 - HRRR model (via Open-Meteo): high-resolution 0-48h forecast per site — prefer HRRR over GFS for today/tomorrow when they disagree, as HRRR is 3km resolution and updated hourly
+- Tomorrow.io: independent mesoscale model, hourly surface wind/gust, temperature, cloud, precip, visibility, pressure for today/tomorrow — use gust values to flag punchy conditions
 - Upper-air sounding (KOAK): radiosonde profile
 - METARs: KSFO (SF Airport), KHAF (Half Moon Bay — key marine layer indicator), KRHV (Reid-Hillview, near Ed Levin), KAPC (Napa, inland gradient), KWVI (Watsonville, south bay marine)
 - AIRMETs: aviation hazard advisories
@@ -454,7 +538,7 @@ The JSON must match this exact schema:
       "hourlyWindows": [
         { "label": "Morning (8–11 AM)", "summary": "<1-2 sentences>" },
         { "label": "Midday (11 AM–2 PM)", "summary": "<1-2 sentences>" },
-        { "label": "Afternoon (2–5 PM)", "summary": "<1-2 sentences>" }
+        { "label": "Afternoon (2 PM–sunset)", "summary": "<1-2 sentences>" }
       ],
       "verdict": {
         "verdict": "<FLY|MARGINAL|NO FLY>",
@@ -645,12 +729,20 @@ export async function runAgent(config: AgentConfig): Promise<BriefJson> {
   const dataParts: string[] = [];
 
   // Fetch GFS then HRRR sequentially per site to avoid Open-Meteo rate limits
-  console.log("  → Fetching Open-Meteo (GFS) and HRRR per site...");
+  // Tomorrow.io runs in parallel (different API, no shared rate limit)
+  console.log("  → Fetching Open-Meteo (GFS), HRRR, and Tomorrow.io per site...");
   for (const [siteName, coords] of Object.entries(sites)) {
+    const tomorrowPromise = config.tomorrowIoApiKey
+      ? fetchTomorrowIo(coords.lat, coords.lon, siteName, config.tomorrowIoApiKey)
+      : Promise.resolve(null);
+
     const omData = await fetchOpenMeteo(coords.lat, coords.lon);
-    dataParts.push(extractDailySummary(omData, siteName));
+    dataParts.push(extractDailySummary(omData, siteName, coords.lat, coords.lon));
     const hrrrSummary = await fetchHrrrSummary(coords.lat, coords.lon, siteName);
     dataParts.push(hrrrSummary);
+
+    const tomorrowSummary = await tomorrowPromise;
+    if (tomorrowSummary) dataParts.push(tomorrowSummary);
   }
 
   console.log("  → Fetching OAK sounding...");
@@ -668,7 +760,12 @@ export async function runAgent(config: AgentConfig): Promise<BriefJson> {
   dataParts.push(buoys);
 
   const combined = dataParts.join("\n");
-  console.log(`  → Sending ${combined.length} chars to Claude...`, combined);
+  
+  console.log('\n  → Combined data context:\n==========================');
+  console.log(combined);
+  console.log('==========================\n');
+
+  console.log(`  → Sending ${combined.length} chars to Claude...`);
 
   const brief = await generateBrief(combined, config.anthropicApiKey, sites);
   console.log("  → Brief generated.");
