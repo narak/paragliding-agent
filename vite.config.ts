@@ -1,13 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
   base: './',
   publicDir: 'docs',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   build: {
     outDir: 'docs',
     emptyOutDir: false,
-    copyPublicDir: false,  // docs/ is outDir — don't copy it into itself
+    copyPublicDir: false,
   },
 })

@@ -1,53 +1,89 @@
-import { SiteEntry } from '../types'
+import { Wind, Clock, User, Flame, AlertTriangle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { SiteEntry } from "@/types"
 
-function verdictClass(verdict: string): string {
-  return 'verdict-' + String(verdict ?? '').replace(/\s+/g, '-').toUpperCase()
+type VerdictVariant = "fly" | "marginal" | "nofly"
+
+function verdictVariant(v: string): VerdictVariant {
+  const upper = (v ?? "").toUpperCase()
+  if (upper === "FLY") return "fly"
+  if (upper === "MARGINAL") return "marginal"
+  return "nofly"
 }
 
 export default function SiteCard({ site }: { site: SiteEntry }) {
-  const v = site.verdict ?? ({} as SiteEntry['verdict'])
-  const hasHazards = v.hazards && v.hazards.toLowerCase() !== 'none' && v.hazards.trim() !== ''
+  const v = site.verdict ?? ({} as SiteEntry["verdict"])
+  const hasHazards = v.hazards && v.hazards.toLowerCase() !== "none" && v.hazards.trim() !== ""
 
   return (
-    <div className="site-card">
-      <div className="site-header">
+    <Card className="overflow-hidden">
+      {/* Site header */}
+      <div className="flex items-start justify-between gap-3 px-5 py-4 bg-secondary/40 border-b border-border">
         <div>
-          <div className="site-name">{site.name}</div>
-          <div className="site-location">{site.locationDescriptor}</div>
+          <div className="font-bold text-base text-foreground">{site.name}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{site.locationDescriptor}</div>
         </div>
-        <div className={`verdict-badge ${verdictClass(v.verdict)}`}>
+        <Badge variant={verdictVariant(v.verdict)}>
           {v.emoji} {v.verdict}
-        </div>
+        </Badge>
       </div>
-      <div className="site-body">
-        <div className="site-meta">
-          <div><div className="meta-label">Best Window</div><div className="meta-value">{v.bestWindow}</div></div>
-          <div><div className="meta-label">Skill Level</div><div className="meta-value">{v.skillLevel}</div></div>
-          <div><div className="meta-label">Wind</div><div className="meta-value">{v.wind}</div></div>
-          <div><div className="meta-label">Thermals</div><div className="meta-value">{v.thermals}</div></div>
+
+      <CardContent className="pt-4 space-y-4">
+        {/* Metadata grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 pb-4 border-b border-border">
+          <MetaItem icon={<Clock className="h-3 w-3" />} label="Best Window" value={v.bestWindow} />
+          <MetaItem icon={<User className="h-3 w-3" />} label="Skill Level" value={v.skillLevel} />
+          <MetaItem icon={<Wind className="h-3 w-3" />} label="Wind" value={v.wind} />
+          <MetaItem icon={<Flame className="h-3 w-3" />} label="Thermals" value={v.thermals} />
         </div>
+
+        {/* Hazards */}
         {hasHazards && (
-          <>
-            <div className="section-label">Hazards</div>
-            <div className="section-text hazard-text">{v.hazards}</div>
-          </>
+          <div className="flex gap-2 p-3 rounded-md bg-marginal/5 border border-marginal/20">
+            <AlertTriangle className="h-4 w-4 text-marginal shrink-0 mt-0.5" />
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-marginal mb-1">Hazards</div>
+              <p className="text-sm text-marginal/90">{v.hazards}</p>
+            </div>
+          </div>
         )}
-        <div className="section-label">Today's Setup</div>
-        <div className="section-text">{site.todaySetup}</div>
+
+        {/* Today's setup */}
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Today's Setup</div>
+          <p className="text-sm leading-relaxed">{site.todaySetup}</p>
+        </div>
+
+        {/* Hourly windows (collapsible) */}
         <details>
           <summary>Hour-by-hour &amp; site mechanics</summary>
-          <div className="detail-body">
+          <div className="mt-3 space-y-0 divide-y divide-border">
             {(site.hourlyWindows ?? []).map((w, i) => (
-              <div key={i} className="hourly-window">
-                <div className="hourly-label">{w.label}</div>
-                <div className="hourly-text">{w.summary}</div>
+              <div key={i} className="py-2.5">
+                <div className="text-xs font-bold text-muted-foreground mb-1">{w.label}</div>
+                <div className="text-sm">{w.summary}</div>
               </div>
             ))}
-            <div className="section-label" style={{ marginTop: '14px' }}>How It Works</div>
-            <div className="section-text">{site.howItWorks}</div>
+            <div className="pt-3">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">How It Works</div>
+              <p className="text-sm leading-relaxed">{site.howItWorks}</p>
+            </div>
           </div>
         </details>
+      </CardContent>
+    </Card>
+  )
+}
+
+function MetaItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div>
+      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
+        {icon}
+        {label}
       </div>
+      <div className="text-sm font-semibold">{value}</div>
     </div>
   )
 }

@@ -1,65 +1,64 @@
-:root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #22263a;
-  --border: #2e3350;
-  --text: #e8eaf0;
-  --muted: #8b92b3;
-  --fly: #22c55e;
-  --marginal: #f59e0b;
-  --nofly: #ef4444;
-  --accent: #6366f1;
-  --radius: 12px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 15px;
-  line-height: 1.6;
-}
-.container { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Header */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-}
-.header h1 { font-size: 22px; font-weight: 700; }
-.header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.generated-at { font-size: 13px; color: var(--muted); }
+@layer base {
+  :root {
+    /* Dark-only theme — variables used directly */
+    --background: 229 26% 7%;
+    --foreground: 228 33% 93%;
 
-/* Date selector */
-.date-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+    --card: 229 21% 11%;
+    --card-foreground: 228 33% 93%;
+
+    --popover: 229 21% 13%;
+    --popover-foreground: 228 33% 93%;
+
+    --primary: 239 83% 67%;
+    --primary-foreground: 228 33% 93%;
+
+    --secondary: 229 25% 17%;
+    --secondary-foreground: 228 33% 93%;
+
+    --muted: 229 25% 17%;
+    --muted-foreground: 229 20% 60%;
+
+    --accent: 239 83% 67%;
+    --accent-foreground: 228 33% 93%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 228 33% 93%;
+
+    --border: 229 26% 22%;
+    --input: 229 25% 17%;
+    --ring: 239 83% 67%;
+    --radius: 0.75rem;
+
+    /* Verdict palette */
+    --fly: 142 71% 45%;
+    --marginal: 38 92% 50%;
+    --nofly: 0 84% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
 }
-.date-nav button {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-.date-nav button:hover { border-color: var(--accent); }
-.date-nav button:disabled { opacity: 0.3; cursor: default; }
-.date-nav select {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 6px 10px;
+
+/* Native select styling (used in DateNav) */
+select.date-select {
+  background-color: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  border-radius: calc(var(--radius) - 2px);
+  padding: 6px 28px 6px 10px;
   font-size: 14px;
   cursor: pointer;
   appearance: none;
@@ -67,105 +66,21 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b92b3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  padding-right: 28px;
+  outline: none;
+  transition: border-color 0.15s;
 }
-.date-nav select:focus { outline: none; border-color: var(--accent); }
-.today-badge {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 20px;
-  padding: 2px 8px;
+select.date-select:focus {
+  border-color: hsl(var(--primary));
 }
 
-/* State */
-.state-msg { text-align: center; padding: 80px 20px; color: var(--muted); }
-.state-msg .icon { font-size: 40px; margin-bottom: 12px; }
-
-/* TLDR */
-.tldr {
-  background: linear-gradient(135deg, #1e2040, #252850);
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-bottom: 16px;
+/* details/summary for hourly windows */
+details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: hsl(var(--primary));
+  margin-top: 14px;
+  list-style: none;
+  user-select: none;
 }
-.tldr-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-.tldr p { font-size: 15px; }
-
-/* Cards */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-@media (max-width: 640px) { .two-col { grid-template-columns: 1fr; } }
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-bottom: 16px;
-}
-.card.no-margin { margin-bottom: 0; }
-.card-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-.card p { font-size: 14px; }
-
-/* Sites */
-.sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; margin-bottom: 16px; }
-@media (max-width: 640px) { .sites-grid { grid-template-columns: 1fr; } }
-.site-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.site-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-}
-.site-name { font-size: 16px; font-weight: 700; }
-.site-location { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.verdict-badge { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
-.verdict-FLY      { background: rgba(34,197,94,0.15);  color: var(--fly);      border: 1px solid rgba(34,197,94,0.3); }
-.verdict-MARGINAL { background: rgba(245,158,11,0.15); color: var(--marginal); border: 1px solid rgba(245,158,11,0.3); }
-.verdict-NO-FLY   { background: rgba(239,68,68,0.15);  color: var(--nofly);    border: 1px solid rgba(239,68,68,0.3); }
-.site-body { padding: 16px 18px; }
-.site-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
-.meta-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
-.meta-value { font-size: 13px; font-weight: 600; }
-.section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin: 12px 0 5px; }
-.section-text { font-size: 14px; line-height: 1.6; }
-.hazard-text { color: var(--marginal); }
-
-details summary { cursor: pointer; font-size: 12px; color: var(--accent); margin-top: 14px; list-style: none; user-select: none; }
 details summary::before { content: "▶  "; font-size: 10px; }
 details[open] summary::before { content: "▼  "; }
-.detail-body { margin-top: 10px; }
-.hourly-window { padding: 8px 0; border-bottom: 1px solid var(--border); }
-.hourly-window:last-child { border-bottom: none; }
-.hourly-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
-.hourly-text { font-size: 13px; }
-
-/* Outlook matrix */
-.outlook-matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
-.outlook-matrix th, .outlook-matrix td { padding: 10px 12px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
-.outlook-matrix thead th { background: var(--surface2); font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
-.outlook-matrix tbody tr:hover td { background: rgba(255,255,255,0.02); }
-.outlook-matrix .site-col { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; min-width: 110px; }
-.outlook-matrix .analysis-cell { color: var(--muted); line-height: 1.5; }
-.outlook-matrix .emoji-indicator { font-size: 15px; margin-right: 5px; flex-shrink: 0; }
-.outlook-matrix .cell-inner { display: flex; align-items: flex-start; gap: 4px; }
-
-.watchlist-text { color: var(--marginal); font-size: 14px; }
-.watchlist-clear { color: var(--muted); font-size: 14px; }
-
-/* Historical banner */
-.history-banner {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 16px;
-  font-size: 13px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
