@@ -2,6 +2,7 @@ import { Wind, Clock, User, Flame, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SiteEntry } from "@/types"
+import { highlightGlossary } from "@/utils/glossary"
 
 type VerdictVariant = "fly" | "marginal" | "nofly"
 
@@ -49,20 +50,19 @@ export default function SiteCard({ site }: { site: SiteEntry }) {
           </div>
         )}
 
-        {/* Today's setup */}
-        <div>
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Today's Setup</div>
-          <p className="text-sm leading-relaxed">{site.todaySetup}</p>
-        </div>
-
         {/* Hourly windows (collapsible) */}
         <details>
           <summary>Hour-by-hour &amp; site mechanics</summary>
           <div className="mt-3 space-y-0 divide-y divide-border">
+            {/* Today's setup */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Today's Setup</div>
+              <p className="text-sm leading-relaxed">{highlightGlossary(site.todaySetup)}</p>
+            </div>
             {(site.hourlyWindows ?? []).map((w, i) => (
               <div key={i} className="py-2.5">
                 <div className="text-xs font-bold text-muted-foreground mb-1">{w.label}</div>
-                <div className="text-sm">{w.summary}</div>
+                <div className="text-sm">{highlightGlossary(w.summary)}</div>
               </div>
             ))}
             <div className="pt-3">

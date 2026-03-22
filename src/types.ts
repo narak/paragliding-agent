@@ -41,5 +41,5 @@ export interface BriefJson {
   aviationFlags: string;
   sites: SiteEntry[];
   outlook: Outlook;
-  watchlist: string;
+  watchlist: string[];
 }

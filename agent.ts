@@ -61,7 +61,7 @@ export interface BriefJson {
     day2: OutlookEntry[];
     day3: OutlookEntry[];
   };
-  watchlist: string;
+  watchlist: string[];
   tldr: string;
 }
 
@@ -170,7 +170,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
       "precipitation_probability", "cloudcover", "visibility",
     ].join(","),
     wind_speed_unit: "kn",
-    forecast_days: "3",
+    forecast_days: "4",
     timezone: LOCAL_TZ,
   });
   const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params}`);
@@ -289,7 +289,7 @@ export async function fetchAirmets(): Promise<string> {
 export function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
   const { hourly } = data;
   const today = localDateString();
-  const dates = Array.from({ length: 3 }, (_, i) => {
+  const dates = Array.from({ length: 4 }, (_, i) => {
     const d = new Date(localNow());
     d.setDate(d.getDate() + i);
     return d.toISOString().slice(0, 10);
@@ -345,7 +345,7 @@ The JSON must match this exact schema:
       "name": "<site name>",
       "locationDescriptor": "<e.g. Daly City — coastal ridge, W-facing>",
       "howItWorks": "<1-2 sentences on site mechanics: ridge vs thermal, ideal wind dir/speed>",
-      "todaySetup": "<3-5 sentence narrative referencing specific numbers from the data>",
+      "todaySetup": "<3-5 sentence narrative. Lead with the key reason(s) this site is FLY/MARGINAL/NO FLY today — the deciding factor(s) first (e.g. wind too light for ridge lift, marine layer holding, thermals capped). Then give the supporting detail with specific numbers. Do NOT just repeat the hourly windows in prose; explain the underlying atmospheric story.>",
       "hourlyWindows": [
         { "label": "Morning (8–11 AM)", "summary": "<1-2 sentences>" },
         { "label": "Midday (11 AM–2 PM)", "summary": "<1-2 sentences>" },
@@ -382,12 +382,13 @@ The JSON must match this exact schema:
       }
     ]
   },
-  "watchlist": "<anything worth monitoring or 'Nothing flagged'>",
+  "watchlist": ["<item worth monitoring, e.g. 'Marine layer may linger past noon'>", "<another item or omit if nothing>"],
   "tldr": "<2-3 sentences. Best site, best window, one-line reason. Casual tone.>"
 }
 
 Rules:
 - Every site in the list must appear in the sites array.
+- Watchlist must be a JSON array of strings (one item per watch item). Use an empty array [] if nothing warrants monitoring.
 - Be direct and specific. Reference actual numbers from the data.
 - Coastal sites (Mussel Rock, Fort Funston): ridge lift mechanics, marine layer, sea breeze timing, rotor risk.
 - Thermal sites (Ed Levin, inland): thermal quality, valley breeze cycle, sea breeze front arrival.

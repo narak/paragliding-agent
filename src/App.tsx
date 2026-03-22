@@ -7,6 +7,7 @@ import DateNav from "@/components/DateNav"
 import StateMsg from "@/components/StateMsg"
 import SiteCard from "@/components/SiteCard"
 import OutlookMatrix from "@/components/OutlookMatrix"
+import { highlightGlossary } from "@/utils/glossary"
 
 export default function App() {
   const [availableDates, setAvailableDates] = useState<string[]>([])
@@ -110,7 +111,7 @@ function BriefView({
   generatedAt: string
 }) {
   const flagsClear = (brief.aviationFlags ?? "").toLowerCase().trim() === "clear"
-  const watchClear = (brief.watchlist ?? "").toLowerCase().includes("nothing")
+  const watchClear = (brief.watchlist ?? []).length === 0
 
   return (
     <div className="space-y-4">
@@ -128,33 +129,6 @@ function BriefView({
       <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 px-5 py-4">
         <div className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">TL;DR</div>
         <p className="text-sm leading-relaxed">{brief.tldr}</p>
-      </div>
-
-      {/* Upper air + aviation flags */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-1.5">
-              <Wind className="h-3 w-3" /> Upper Air &amp; Sounding (OAK)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-relaxed">{brief.upperAir}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-1.5">
-              <Radio className="h-3 w-3" /> Aviation Flags
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={`text-sm leading-relaxed ${flagsClear ? "text-muted-foreground" : "text-marginal"}`}>
-              {brief.aviationFlags}
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Site cards */}
@@ -184,11 +158,47 @@ function BriefView({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className={`text-sm leading-relaxed ${watchClear ? "text-muted-foreground" : "text-marginal"}`}>
-            {brief.watchlist}
-          </p>
+          {watchClear ? (
+            <p className="text-sm text-muted-foreground">Nothing flagged.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {brief.watchlist.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-marginal">
+                  <span className="mt-0.5 shrink-0">•</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
+      
+      {/* Upper air + aviation flags */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-1.5">
+              <Wind className="h-3 w-3" /> Upper Air &amp; Sounding (OAK)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-relaxed">{highlightGlossary(brief.upperAir)}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-1.5">
+              <Radio className="h-3 w-3" /> Aviation Flags
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-sm leading-relaxed ${flagsClear ? "text-muted-foreground" : "text-marginal"}`}>
+              {brief.aviationFlags}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Footer */}
       <p className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
