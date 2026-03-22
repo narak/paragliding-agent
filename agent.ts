@@ -121,7 +121,7 @@ export const DEFAULT_SITES: Record<string, Site> = {
 };
 
 export const SOUNDING_STATION = "KOAK";
-export const METAR_STATIONS = ["KSFO", "KHAF"];
+export const METAR_STATIONS = ["KSFO", "KHAF", "KRHV", "KAPC", "KWVI"];
 export const LOCAL_TZ = "America/Los_Angeles";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -155,6 +155,22 @@ export async function fetchWithTimeout(
   }
 }
 
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 15000,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await fetchWithTimeout(url, options, timeoutMs);
+    if (res.status !== 429 || attempt === maxRetries) return res;
+    const delay = 2000 * Math.pow(2, attempt); // 2s, 4s, 8s
+    console.warn(`  ⚠ 429 rate limit, retrying in ${delay / 1000}s...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+  throw new Error("fetchWithRetry: unreachable");
+}
+
 // ── Data Fetchers ──────────────────────────────────────────────────────────────
 
 export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMeteoResponse> {
@@ -173,7 +189,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
     forecast_days: "4",
     timezone: LOCAL_TZ,
   });
-  const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params}`);
+  const res = await fetchWithRetry(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
   return res.json() as Promise<OpenMeteoResponse>;
 }
@@ -284,6 +300,89 @@ export async function fetchAirmets(): Promise<string> {
   } catch (e) { return `AIRMETs unavailable: ${e}`; }
 }
 
+export async function fetchHrrrSummary(lat: number, lon: number, siteName: string): Promise<string> {
+  const params = new URLSearchParams({
+    latitude: lat.toString(),
+    longitude: lon.toString(),
+    hourly: [
+      "windspeed_10m", "winddirection_10m",
+      "windspeed_80m", "winddirection_80m",
+      "cape", "boundary_layer_height",
+      "precipitation_probability", "cloudcover",
+    ].join(","),
+    wind_speed_unit: "kn",
+    forecast_days: "2",  // HRRR only reliable 0-48h
+    timezone: LOCAL_TZ,
+    models: "gfs_hrrr",
+  });
+  try {
+    const res = await fetchWithRetry(`https://api.open-meteo.com/v1/forecast?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json() as OpenMeteoResponse;
+    const { hourly } = data;
+    const today = localDateString();
+    const dates = [today, (() => { const d = new Date(localNow()); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); })()];
+
+    const lines = [`\n=== HRRR Model: ${siteName} ===`, "Date        Hour  Wind10m        Wind80m   BL_Ht   CAPE  Precip  Cloud"];
+    hourly.time.forEach((t, i) => {
+      if (!dates.includes(t.slice(0, 10))) return;
+      const hour = parseInt(t.slice(11, 13), 10);
+      if (hour < 8 || hour > 17) return;
+      if (t.slice(0, 10) !== today && hour % 2 !== 0) return;
+      const v = (key: keyof typeof hourly): string => {
+        const arr = hourly[key] as number[];
+        return arr[i] != null ? String(Math.round(arr[i] * 10) / 10) : "N/A";
+      };
+      lines.push(
+        `${t.slice(0, 10)}  ${String(hour).padStart(2, "0")}:00  ` +
+        `${v("windspeed_10m")}kn@${v("winddirection_10m")}°  ${v("windspeed_80m")}kn  ` +
+        `${v("boundary_layer_height")}m  ${v("cape")}  ` +
+        `${v("precipitation_probability")}%  ${v("cloudcover")}%`
+      );
+    });
+    return lines.join("\n");
+  } catch (e) {
+    return `\n=== HRRR Model: ${siteName} ===\nUnavailable: ${e}`;
+  }
+}
+
+// NDBC buoys offshore SF: 46026 (SF Bar), 46013 (Bodega Bay), 46012 (Half Moon Bay)
+export const NDBC_BUOYS = [
+  { id: "46026", name: "SF Bar" },
+  { id: "46013", name: "Bodega Bay" },
+  { id: "46012", name: "Half Moon Bay" },
+];
+
+export async function fetchNdbcBuoys(buoys: { id: string; name: string }[]): Promise<string> {
+  const results: string[] = ["\n=== NDBC Ocean Buoys ==="];
+  results.push("Buoy            SST(°C)  WaveHt(m)  WavePeriod  WindKt@Dir  Pressure(hPa)");
+
+  await Promise.all(buoys.map(async ({ id, name }) => {
+    try {
+      const res = await fetchWithTimeout(`https://www.ndbc.noaa.gov/data/realtime2/${id}.txt`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const lines = text.trim().split("\n");
+      // Line 0: header, Line 1: units, Line 2+: data (most recent first)
+      const dataLine = lines[2];
+      if (!dataLine) throw new Error("no data");
+      const cols = dataLine.trim().split(/\s+/);
+      // Columns: YY MM DD hh mm WDIR WSPD GST WVHT DPD APD MWD PRES ATMP WTMP DEWP VIS PTDY TIDE
+      const wdir   = cols[5]  !== "MM" ? cols[5]  : "N/A";
+      const wspd   = cols[6]  !== "MM" ? `${(parseFloat(cols[6]) * 1.944).toFixed(1)}` : "N/A"; // m/s→kts
+      const wvht   = cols[8]  !== "MM" ? cols[8]  : "N/A";
+      const dpd    = cols[9]  !== "MM" ? cols[9]  : "N/A";
+      const pres   = cols[12] !== "MM" ? cols[12] : "N/A";
+      const wtmp   = cols[14] !== "MM" ? cols[14] : "N/A";
+      results.push(`${(name + " " + id).padEnd(16)}  ${wtmp.padStart(7)}  ${wvht.padStart(9)}  ${(dpd + "s").padStart(10)}  ${wspd.padStart(6)}kts@${wdir}°  ${pres}`);
+    } catch (e) {
+      results.push(`${(name + " " + id).padEnd(16)}  unavailable: ${e}`);
+    }
+  }));
+
+  return results.join("\n");
+}
+
 // ── Data Formatting ────────────────────────────────────────────────────────────
 
 export function extractDailySummary(data: OpenMeteoResponse, siteName: string): string {
@@ -330,7 +429,13 @@ Today is ${date}.
 Sites to cover:
 ${siteList}
 
-You will be given raw meteorological data (Open-Meteo forecasts, upper-air sounding, METARs, AIRMETs).
+You will be given raw meteorological data from multiple sources:
+- Open-Meteo (GFS model): 4-day hourly forecast per site
+- HRRR model (via Open-Meteo): high-resolution 0-48h forecast per site — prefer HRRR over GFS for today/tomorrow when they disagree, as HRRR is 3km resolution and updated hourly
+- Upper-air sounding (KOAK): radiosonde profile
+- METARs: KSFO (SF Airport), KHAF (Half Moon Bay — key marine layer indicator), KRHV (Reid-Hillview, near Ed Levin), KAPC (Napa, inland gradient), KWVI (Watsonville, south bay marine)
+- AIRMETs: aviation hazard advisories
+- NDBC ocean buoys: SST, wave height/period, surface wind offshore SF — use sea surface temp and marine wind to assess marine layer depth and burn-off timing for coastal sites
 
 CRITICAL: Respond with ONLY a valid JSON object. No markdown, no backticks, no explanation. The response must be parseable by JSON.parse().
 
@@ -390,8 +495,10 @@ Rules:
 - Every site in the list must appear in the sites array.
 - Watchlist must be a JSON array of strings (one item per watch item). Use an empty array [] if nothing warrants monitoring.
 - Be direct and specific. Reference actual numbers from the data.
-- Coastal sites (Mussel Rock, Fort Funston): ridge lift mechanics, marine layer, sea breeze timing, rotor risk.
-- Thermal sites (Ed Levin, inland): thermal quality, valley breeze cycle, sea breeze front arrival.
+- Coastal sites (Mussel Rock, Fort Funston): ridge lift mechanics, marine layer, sea breeze timing, rotor risk. Use KHAF METAR and buoy SST/wave data to assess marine layer depth and burn-off.
+- Thermal sites (Ed Levin, inland): thermal quality, valley breeze cycle, sea breeze front arrival. Use KRHV and KAPC METARs for local inland conditions.
+- When GFS and HRRR disagree on wind speed or direction for today/tomorrow, note the discrepancy and weight HRRR more heavily.
+- Cold SST + high wave period on buoys → stronger/deeper marine layer, later burn-off. Warm SST → shallower layer, earlier clearing.
 - P2: light-moderate conditions in benign air only. Flag anything punchy or gusty as beyond their limits.
 - P3: moderate-strong conditions. Calibrate language accordingly.
 - If a site has no viable window, say so clearly in todaySetup and set verdict to NO FLY.`;
@@ -537,26 +644,31 @@ export async function runAgent(config: AgentConfig): Promise<BriefJson> {
 
   const dataParts: string[] = [];
 
+  // Fetch GFS then HRRR sequentially per site to avoid Open-Meteo rate limits
+  console.log("  → Fetching Open-Meteo (GFS) and HRRR per site...");
   for (const [siteName, coords] of Object.entries(sites)) {
-    console.log(`  → Fetching Open-Meteo for ${siteName}...`);
     const omData = await fetchOpenMeteo(coords.lat, coords.lon);
     dataParts.push(extractDailySummary(omData, siteName));
+    const hrrrSummary = await fetchHrrrSummary(coords.lat, coords.lon, siteName);
+    dataParts.push(hrrrSummary);
   }
 
   console.log("  → Fetching OAK sounding...");
   const sounding = await fetchSounding(SOUNDING_STATION);
   dataParts.push(`\n=== Sounding Data (${SOUNDING_STATION}) ===\n${sounding}`);
 
-  console.log("  → Fetching METARs...");
-  const metars = await fetchMetars(METAR_STATIONS);
+  console.log("  → Fetching METARs, AIRMETs, NDBC buoys...");
+  const [metars, airmets, buoys] = await Promise.all([
+    fetchMetars(METAR_STATIONS),
+    fetchAirmets(),
+    fetchNdbcBuoys(NDBC_BUOYS),
+  ]);
   dataParts.push(`\n=== METARs (${METAR_STATIONS.join(", ")}) ===\n${metars}`);
-
-  console.log("  → Fetching AIRMETs...");
-  const airmets = await fetchAirmets();
   dataParts.push(`\n=== AIRMETs (Bay Area) ===\n${airmets}`);
+  dataParts.push(buoys);
 
   const combined = dataParts.join("\n");
-  console.log(`  → Sending ${combined.length} chars to Claude...`);
+  console.log(`  → Sending ${combined.length} chars to Claude...`, combined);
 
   const brief = await generateBrief(combined, config.anthropicApiKey, sites);
   console.log("  → Brief generated.");
