@@ -463,9 +463,21 @@ export function buildTelegramMessage(brief: BriefJson, pagesUrl?: string): strin
   lines.push("<b>Site Verdicts:</b>");
   for (const site of brief.sites) {
     const v = site.verdict;
-    lines.push(`${v.emoji} <b>${escapeHtml(site.name)}</b> — ${escapeHtml(v.bestWindow)} | ${escapeHtml(v.wind)} | ${escapeHtml(v.skillLevel)}`);
+    lines.push("");
+    lines.push(`${v.emoji} <b>${escapeHtml(site.name)}</b>`);
+    lines.push(`   🕐 ${escapeHtml(v.bestWindow)}  💨 ${escapeHtml(v.wind)}  👤 ${escapeHtml(v.skillLevel)}`);
     if (v.hazards && v.hazards.toLowerCase() !== "none") {
-      lines.push(`   ⚠ ${escapeHtml(v.hazards)}`);
+      lines.push(`   ⚠️ ${escapeHtml(v.hazards)}`);
+    }
+  }
+
+  // Watchlist
+  const watchItems = (brief.watchlist ?? []).filter(Boolean);
+  if (watchItems.length > 0) {
+    lines.push("");
+    lines.push("<b>Watchlist:</b>");
+    for (const item of watchItems) {
+      lines.push(`   • ${escapeHtml(item)}`);
     }
   }
 
