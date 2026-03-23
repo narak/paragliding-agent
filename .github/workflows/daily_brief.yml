@@ -1,9 +1,11 @@
-name: Paragliding Daily Brief
+name: Paragliding Generate Brief
 
 on:
   schedule:
-    - cron: "30 13 * * *"   # 6:30 AM PST (Nov–Mar)
-    - cron: "30 14 * * *"   # 6:30 AM PDT (Mar–Nov)
+    - cron: "30 6 * * *"
+      timezone: "America/Los_Angeles"
+    - cron: "30 14 * * *"
+      timezone: "America/Los_Angeles"
   workflow_dispatch:         # Manual trigger for testing
 
 # Needed to commit brief.json back to the repo
