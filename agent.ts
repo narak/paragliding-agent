@@ -202,7 +202,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<OpenMete
       "precipitation_probability", "cloudcover", "visibility",
     ].join(","),
     wind_speed_unit: "kn",
-    forecast_days: "4",
+    forecast_days: "3",
     timezone: LOCAL_TZ,
   });
   const res = await fetchWithRetry(`https://api.open-meteo.com/v1/forecast?${params}`);
@@ -254,10 +254,10 @@ export async function fetchSounding(station: string): Promise<string> {
 
   const lines = [
     `Station: ${station}  Valid: ${data.profiles[0].station ?? "unknown"} UTC`,
-    "Pres(mb)  Hght(m)  Temp(C)  Dwpt(C)  WindDir  WindKt",
+    "pres_mb,hght_m,temp_c,dwpt_c,wind_dir,wind_kt,spread_c",
     ...relevantLevels.map(lvl => {
       const spread = (lvl.tmpc - lvl.dwpc).toFixed(1);
-      return `${String(lvl.pres).padStart(8)}  ${String(lvl.hght).padStart(7)}  ${String(lvl.tmpc).padStart(7)}  ${String(lvl.dwpc).padStart(7)}  ${String(lvl.drct).padStart(7)}  ${String(lvl.sknt).padStart(6)}  spread:${spread}`;
+      return `${lvl.pres},${lvl.hght},${lvl.tmpc},${lvl.dwpc},${lvl.drct},${lvl.sknt},${spread}`;
     }),
   ];
 
@@ -340,7 +340,7 @@ export async function fetchHrrrSummary(lat: number, lon: number, siteName: strin
     const dates = [today, (() => { const d = new Date(localNow()); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); })()];
 
     const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
-    const lines = [`\n=== HRRR Model: ${siteName} ===`, "Date        Hour  Wind10m        Wind80m   BL_Ht   CAPE  Precip  Cloud"];
+    const lines = [`\n=== HRRR Model: ${siteName} ===`, "date,hour,wind10_kn,wind10_dir,wind80_kn,bl_m,cape,precip_pct,cloud_pct"];
     hourly.time.forEach((t, i) => {
       if (!dates.includes(t.slice(0, 10))) return;
       const hour = parseInt(t.slice(11, 13), 10);
@@ -351,10 +351,10 @@ export async function fetchHrrrSummary(lat: number, lon: number, siteName: strin
         return arr[i] != null ? String(Math.round(arr[i] * 10) / 10) : "N/A";
       };
       lines.push(
-        `${t.slice(0, 10)}  ${String(hour).padStart(2, "0")}:00  ` +
-        `${v("windspeed_10m")}kn@${v("winddirection_10m")}°  ${v("windspeed_80m")}kn  ` +
-        `${v("boundary_layer_height")}m  ${v("cape")}  ` +
-        `${v("precipitation_probability")}%  ${v("cloudcover")}%`
+        `${t.slice(0, 10)},${hour},` +
+        `${v("windspeed_10m")},${v("winddirection_10m")},${v("windspeed_80m")},` +
+        `${v("boundary_layer_height")},${v("cape")},` +
+        `${v("precipitation_probability")},${v("cloudcover")}`
       );
     });
     return lines.join("\n");
@@ -372,7 +372,7 @@ export const NDBC_BUOYS = [
 
 export async function fetchNdbcBuoys(buoys: { id: string; name: string }[]): Promise<string> {
   const results: string[] = ["\n=== NDBC Ocean Buoys ==="];
-  results.push("Buoy            SST(°C)  WaveHt(m)  WavePeriod  WindKt@Dir  Pressure(hPa)");
+  results.push("buoy_id,buoy_name,sst_c,wave_ht_m,wave_period_s,wind_kn,wind_dir,pressure_hpa");
 
   await Promise.all(buoys.map(async ({ id, name }) => {
     try {
@@ -391,7 +391,7 @@ export async function fetchNdbcBuoys(buoys: { id: string; name: string }[]): Pro
       const dpd    = cols[9]  !== "MM" ? cols[9]  : "N/A";
       const pres   = cols[12] !== "MM" ? cols[12] : "N/A";
       const wtmp   = cols[14] !== "MM" ? cols[14] : "N/A";
-      results.push(`${(name + " " + id).padEnd(16)}  ${wtmp.padStart(7)}  ${wvht.padStart(9)}  ${(dpd + "s").padStart(10)}  ${wspd.padStart(6)}kts@${wdir}°  ${pres}`);
+      results.push(`${id},${name},${wtmp},${wvht},${dpd},${wspd},${wdir},${pres}`);
     } catch (e) {
       results.push(`${(name + " " + id).padEnd(16)}  unavailable: ${e}`);
     }
@@ -440,7 +440,7 @@ export async function fetchTomorrowIo(lat: number, lon: number, siteName: string
     const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
     const lines = [
       `\n=== Tomorrow.io: ${siteName} ===`,
-      "Date        Hour  Wind10m(kn)@Dir  Gust(kn)  Temp(C)  Cloud  Precip  Visibility(km)  Pressure(hPa)",
+      "date,hour,wind10_kn,wind10_dir,gust_kn,temp_c,cloud_pct,precip_pct,vis_km,pressure_hpa",
     ];
 
     for (const hour of data.timelines.hourly) {
@@ -453,10 +453,10 @@ export async function fetchTomorrowIo(lat: number, lon: number, siteName: string
       const windKts = (v.windSpeed * 1.944).toFixed(1);
       const gustKts = (v.windGust * 1.944).toFixed(1);
       lines.push(
-        `${dateStr}  ${String(h).padStart(2, "0")}:00  ` +
-        `${windKts}kn@${Math.round(v.windDirection)}°  ${gustKts}kn  ` +
-        `${v.temperature.toFixed(1)}  ${Math.round(v.cloudCover)}%  ` +
-        `${Math.round(v.precipitationProbability)}%  ${v.visibility.toFixed(1)}  ${Math.round(v.pressureSurfaceLevel)}`
+        `${dateStr},${h},` +
+        `${windKts},${Math.round(v.windDirection)},${gustKts},` +
+        `${v.temperature.toFixed(1)},${Math.round(v.cloudCover)},` +
+        `${Math.round(v.precipitationProbability)},${v.visibility.toFixed(1)},${Math.round(v.pressureSurfaceLevel)}`
       );
     }
     return lines.join("\n");
@@ -471,13 +471,13 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string, l
   const { hourly } = data;
   const today = localDateString();
   const sunset = Math.floor(sunsetLocalHour(lat, lon, localNow()));
-  const dates = Array.from({ length: 4 }, (_, i) => {
+  const dates = Array.from({ length: 3 }, (_, i) => {
     const d = new Date(localNow());
     d.setDate(d.getDate() + i);
     return d.toISOString().slice(0, 10);
   });
 
-  const lines = [`\n=== Open-Meteo: ${siteName} ===`, "Date        Hour  Wind10m        Wind80m   Wind120m  BL_Ht   CAPE  Precip  Cloud"];
+  const lines = [`\n=== Open-Meteo: ${siteName} ===`, "date,hour,wind10_kn,wind10_dir,wind80_kn,wind120_kn,bl_m,cape,precip_pct,cloud_pct"];
 
   hourly.time.forEach((t, i) => {
     if (!dates.includes(t.slice(0, 10))) return;
@@ -491,10 +491,10 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string, l
     };
 
     lines.push(
-      `${t.slice(0, 10)}  ${String(hour).padStart(2, "0")}:00  ` +
-      `${v("windspeed_10m")}kn@${v("winddirection_10m")}°  ${v("windspeed_80m")}kn  ` +
-      `${v("windspeed_120m")}kn  ${v("boundary_layer_height")}m  ${v("cape")}  ` +
-      `${v("precipitation_probability")}%  ${v("cloudcover")}%`
+      `${t.slice(0, 10)},${hour},` +
+      `${v("windspeed_10m")},${v("winddirection_10m")},${v("windspeed_80m")},` +
+      `${v("windspeed_120m")},${v("boundary_layer_height")},${v("cape")},` +
+      `${v("precipitation_probability")},${v("cloudcover")}`
     );
   });
 
@@ -503,12 +503,11 @@ export function extractDailySummary(data: OpenMeteoResponse, siteName: string, l
 
 // ── LLM Brief Generation ───────────────────────────────────────────────────────
 
-const buildSystemPrompt = (sites: Record<string, Site>, date: string): string => {
+const buildSystemPrompt = (sites: Record<string, Site>): string => {
   const siteList = Object.keys(sites).map(name => `- ${name}`).join("\n");
 
   return `You are an expert paragliding conditions analyst delivering a daily morning brief to a USHPA P2/P3 pilot flying Bay Area sites.
 
-Today is ${date}.
 Sites to cover:
 ${siteList}
 
@@ -526,7 +525,7 @@ CRITICAL: Respond with ONLY a valid JSON object. No markdown, no backticks, no e
 The JSON must match this exact schema:
 {
   "generatedAt": "<ISO timestamp>",
-  "date": "${date}",
+  "date": "<the date from the user message, e.g. Saturday, March 21, 2026>",
   "upperAir": "<2-3 sentence sounding interpretation: inversion height, lapse rate, thermal ceiling, wind shear>",
   "aviationFlags": "<active AIRMETs and METAR anomalies, or 'Clear'>",
   "sites": [
@@ -593,7 +592,8 @@ export async function generateBrief(
   apiKey: string,
   sites: Record<string, Site>
 ): Promise<BriefJson> {
-  const system = buildSystemPrompt(sites, formatDate());
+  const numSites = Object.keys(sites).length;
+  const maxTokens = Math.min(8192, numSites * 2000 + 1000);
 
   const res = await fetchWithTimeout(
     "https://api.anthropic.com/v1/messages",
@@ -602,13 +602,20 @@ export async function generateBrief(
       headers: {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
+        "anthropic-beta": "prompt-caching-2024-07-31",
         "content-type": "application/json",
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 8192,
-        system,
-        messages: [{ role: "user", content: `Generate my paragliding brief from this data:\n\n${weatherData}` }],
+        max_tokens: maxTokens,
+        system: [
+          {
+            type: "text",
+            text: buildSystemPrompt(sites),
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        messages: [{ role: "user", content: `Today is ${formatDate()}.\n\nGenerate my paragliding brief from this data:\n\n${weatherData}` }],
       }),
     },
     240000

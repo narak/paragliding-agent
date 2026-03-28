@@ -5,7 +5,8 @@
       "Bash(npm run:*)",
       "Bash(python -c \"import sys,json; print\\(json.load\\(sys.stdin\\)[''''version'''']\\)\")",
       "Bash(node -p \"require\\(''./node_modules/vite/package.json''\\).version\")",
-      "Bash(node -p \"require\\(''./node_modules/react/package.json''\\).version\")"
+      "Bash(node -p \"require\\(''./node_modules/react/package.json''\\).version\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }
