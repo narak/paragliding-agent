@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Wind, Radio, Eye, TriangleAlert } from "lucide-react"
+import { Wind, Radio, Eye, TriangleAlert, ChevronDown, ChevronRight } from "lucide-react"
 import { BriefJson } from "@/types"
 import { todayMmdd, mmddToLabel } from "@/utils"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -112,6 +112,7 @@ function BriefView({
 }) {
   const flagsClear = (brief.aviationFlags ?? "").toLowerCase().trim() === "clear"
   const watchClear = (brief.watchlist ?? []).length === 0
+  const [outlookOpen, setOutlookOpen] = useState(true)
 
   return (
     <div className="space-y-4">
@@ -140,14 +141,24 @@ function BriefView({
 
       {/* 3-Day Outlook */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader
+          className="pb-3 cursor-pointer select-none"
+          onClick={() => setOutlookOpen(o => !o)}
+        >
           <CardTitle className="flex items-center gap-1.5">
             <Eye className="h-3 w-3" /> 3-Day Outlook
+            <span className="ml-auto">
+              {outlookOpen
+                ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+            </span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <OutlookMatrix outlook={brief.outlook} />
-        </CardContent>
+        {outlookOpen && (
+          <CardContent>
+            <OutlookMatrix outlook={brief.outlook} />
+          </CardContent>
+        )}
       </Card>
 
       {/* Watchlist */}

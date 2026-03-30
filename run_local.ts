@@ -2,7 +2,7 @@
  * run-local.ts — Local development entrypoint
  *
  * Loads secrets from .env and runs the agent.
- * --dry-run  → prints brief JSON to console, no Telegram, no file write
+ * --dry-run  → fetches all weather data and dumps the raw payload; no LLM, no Telegram
  * --no-send  → writes brief.json but skips Telegram
  *
  * Usage:
@@ -14,7 +14,7 @@
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
-import { runAgent, sendTelegram, buildTelegramMessage, localNow } from "./agent.js";
+import { runAgent, gatherWeatherData, sendTelegram, buildTelegramMessage, localNow } from "./agent.js";
 
 function requireEnv(key: string): string {
   const val = process.env[key];
@@ -27,6 +27,15 @@ const noSend = process.argv.includes("--no-send");
 
 async function main(): Promise<void> {
   const rawSites = process.env["SITES"] ?? "";
+  const tomorrowIoApiKey = process.env["TOMORROW_IO_API_KEY"] || undefined;
+
+  if (isDryRun) {
+    const { combined } = await gatherWeatherData({ sites: rawSites || undefined, tomorrowIoApiKey });
+    console.log("\n─── DRY RUN — weather payload (no LLM, no Telegram) ───\n");
+    console.log(combined);
+    console.log("\n────────────────────────────────────────────────────────\n");
+    return;
+  }
 
   const config = {
     anthropicApiKey: requireEnv("ANTHROPIC_API_KEY"),
@@ -34,17 +43,10 @@ async function main(): Promise<void> {
     telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
     sites: rawSites || undefined,
     pagesUrl: process.env["PAGES_URL"],
-    tomorrowIoApiKey: process.env["TOMORROW_IO_API_KEY"] || undefined,
+    tomorrowIoApiKey,
   };
 
   const brief = await runAgent(config);
-
-  if (isDryRun) {
-    console.log("\n─── DRY RUN — not sending or saving ───\n");
-    console.log(JSON.stringify(brief, null, 2));
-    console.log("\n────────────────────────────────────────\n");
-    return;
-  }
 
   // Write dated brief — MM-DD.json rolls over after a year (max 366 files)
   const now = localNow();

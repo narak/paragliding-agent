@@ -727,9 +727,12 @@ export async function sendTelegram(
 
 // ── Shared Pipeline ────────────────────────────────────────────────────────────
 
-export async function runAgent(config: AgentConfig): Promise<BriefJson> {
-  const startTime = new Date().toLocaleTimeString("en-US", { timeZone: LOCAL_TZ });
-  console.log(`[${startTime}] Starting paragliding weather agent...`);
+export interface WeatherPayload {
+  combined: string;
+  sites: Record<string, Site>;
+}
+
+export async function gatherWeatherData(config: Pick<AgentConfig, "sites" | "tomorrowIoApiKey">): Promise<WeatherPayload> {
   const sites = config.sites ? parseSites(config.sites) : DEFAULT_SITES;
   console.log(`  → Sites: ${Object.keys(sites).join(", ")}`);
 
@@ -766,11 +769,14 @@ export async function runAgent(config: AgentConfig): Promise<BriefJson> {
   dataParts.push(`\n=== AIRMETs (Bay Area) ===\n${airmets}`);
   dataParts.push(buoys);
 
-  const combined = dataParts.join("\n");
-  
-  console.log('\n  → Combined data context:\n==========================');
-  console.log(combined);
-  console.log('==========================\n');
+  return { combined: dataParts.join("\n"), sites };
+}
+
+export async function runAgent(config: AgentConfig): Promise<BriefJson> {
+  const startTime = new Date().toLocaleTimeString("en-US", { timeZone: LOCAL_TZ });
+  console.log(`[${startTime}] Starting paragliding weather agent...`);
+
+  const { combined, sites } = await gatherWeatherData(config);
 
   console.log(`  → Sending ${combined.length} chars to Claude...`);
 
