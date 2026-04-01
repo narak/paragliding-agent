@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-04-01T14:30:00Z",
+  "date": "Wednesday, April 1, 2026",
+  "upperAir": "The KOAK sounding shows a near-saturated surface layer (spread only 1.6°C at 1012 mb) with a moist adiabatic lapse rate of 6.61°C/km to 850 mb — right at the stability threshold and consistent with the overcast/stratus observed at all coastal METARs. A strong inversion is evident near 850 mb (5°C at 1455 m) capping thermals well below 1500 m AGL; BL heights from models confirm thermal ceilings of 500–1000 m above terrain at best. Upper winds clock from SW at 850 mb (225°/15 kts) to W-WNW at 700 mb (270°/24–25 kts), introducing moderate shear that could make any thermal cycle punchy and unpredictable.",
+  "aviationFlags": "No active AIRMETs for the Bay Area SF region. KHAF reporting OVC003–OVC013 with 3–4SM in mist — marine layer ceiling at 300–1300 ft MSL at the coast, effectively blocking coastal site operations this morning. KSFO showing FEW006-BKN023 with light SW winds. KRHV BKN040 — partial inland clearing but cloud bases low. KAPC OVC031 with BKN014 — marine influence pushing inland to Napa. KWVI BKN022-OVC033 — south bay marine layer intact. Overall: low cloud and mist are the dominant hazard today, with no clearing signals at coastal sites.",
+  "sites": [
+    {
+      "name": "Ed Levin (1750 ft)",
+      "locationDescriptor": "Milpitas — upper launch, inland thermal/ridge site, SW-facing",
+      "howItWorks": "Ed Levin's upper launch at 1750 ft works on thermal-driven cycles that develop as the Santa Clara Valley heats up, combined with a SW-to-W sea breeze that arrives mid-afternoon. Ideal conditions are W-SW winds 8–15 kts, thermals to 3000+ ft AGL, and broken or clearing cloud.",
+      "todaySetup": "Today's primary problem at the upper launch is a combination of persistent low overcast and a capped, unstable boundary layer that suppresses useful thermals while simultaneously generating CAPE and precip risk. The sounding inversion near 850 mb (1455 m) limits thermal ceiling to roughly 500–1000 m AGL — barely above launch height — making thermal flight impractical. Both HRRR and GFS agree on 100% cloud cover through most of the day with winds from the SSW at 9–12 kts, but CAPE values spike to 100–140 J/kg by early-to-mid afternoon (14Z onward) alongside precip probability of 15–19%, signaling convective instability under the overcast rather than flyable thermals. Tomorrow.io gusts hit 13–15 kts at launch level with visibility dropping to 5–6 km in the afternoon, reinforcing a murky, turbulent picture. The wind direction at upper levels (SW/SSW 205–227° early, then clocking toward W-WNW 270° by 15Z) is acceptable for the site but the atmospheric quality makes this a no-go.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Overcast at 100%, SSW winds 9–11 kts, BL only 470–660 m. No thermal development possible under solid cloud cover."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Cloud cover remains 80–100%, CAPE building to 100–130 J/kg with precip probability rising to 10–19%. Convective instability without thermal usability — potential for gusty, turbulent conditions and rain showers."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Wind shifts toward W-WNW (270°) at 12–15 kts at 80 m, CAPE still elevated, cloud 100%, precip risk 15%. Conditions deteriorate with rotor and turbulence risk downwind of the ridge."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "10–12 kts SSW→W",
+        "thermals": "Weak",
+        "hazards": "Persistent overcast blocking thermals, CAPE 100–140 J/kg with 15–19% precip risk, inversion capping BL near 1000 m, potential convective showers and turbulence mid-afternoon",
+        "skillLevel": "P3+ locals only"
+      }
+    },
+    {
+      "name": "Ed Levin (600 ft)",
+      "locationDescriptor": "Milpitas — lower training hill, SW-facing, sheltered valley floor",
+      "howItWorks": "The 600 ft lower launch is a training hill relying on consistent ridge/slope lift from SW winds and gentle thermals. It works best with steady SW 8–12 kts, clear skies, and calm morning conditions for student operations.",
+      "todaySetup": "Conditions at the lower launch mirror the upper site's problems — the marine-influenced overcast is entrenched from the surface up, with KRHV reporting BKN040 and KWVI BKN022 confirming the cloud deck is region-wide. BL heights start at 585 m (barely above the 600 ft launch) and climb only modestly to 1000 m midday, providing no meaningful soaring lift. CAPE reaches 110–140 J/kg with 17% precip probability by 14Z, and winds back from SSW to W by afternoon (290–295°) at 10–11 kts — a cross-to-slightly-off direction for the lower bowl. Tomorrow.io gusts reach 12 kts with visibility 14 km, marginally better than the upper site, but the convective instability and cloud cover make this unsuitable even for training.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Overcast, light SSW 7–9 kts, BL 585–790 m. No soaring lift; conditions too unstable and murky for training."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "CAPE peaks at 110–140 J/kg, precip risk to 17%. Cloud 73–100%. Winds 10–12 kts SSW with 80 m winds at 14 kts. Shower and turbulence risk."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Wind shifts to W-WNW 290–295°, becoming cross for the lower launch. Gusts to 12 kts, cloud 100%, unstable. No viable window."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "9–11 kts SSW→W",
+        "thermals": "Weak",
+        "hazards": "Overcast blocking lift, CAPE 140 J/kg with precip risk, afternoon wind shift to cross direction, convective instability risk",
+        "skillLevel": "P2+"
+      }
+    },
+    {
+      "name": "Mussel Rock",
+      "locationDescriptor": "Daly City — coastal bluff, W/NW-facing ridge site",
+      "howItWorks": "Mussel Rock is a pure ridge-lift site driven by the onshore marine flow funneled against the coastal bluff. Ideal winds are NW-W at 12–20 kts for sustained ridge soaring. The site is highly sensitive to marine layer depth — low overcast and mist kill visibility and can trap pilots below the ridge.",
+      "todaySetup": "The marine layer is firmly entrenched at Mussel Rock today and is the single deciding factor: KHAF is reporting OVC003–OVC013 with 3–4SM in mist, meaning cloud bases are 300–1300 ft MSL — right at or below the bluff crest. The NDBC Half Moon Bay buoy (46012) shows SST of only 12.5°C and offshore winds of 5.8 kts from 210°, indicating a shallow but persistent marine layer with minimal thermal forcing to burn it off. The SF Bar buoy (46026) at 13.5°C SST and 5.8 kts SW confirms the marine onflow is light and cool. GFS and HRRR both show 100% cloud cover all day with SSW winds 10–12 kts at 10 m — technically flyable direction but the cloud base issue makes this unacceptable. Tomorrow.io adds gusts to 17–19 kts by late afternoon with 120 m winds at 14–16 kts, which would be rowdy ridge conditions even if clear. No clearing is modeled at this location today.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "OVC003 at KHAF — cloud bases at 300 ft MSL, mist and 3SM visibility. Ridge is in the clouds. Absolutely no fly."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Models show 100% cloud cover persisting, SSW 10–11 kts with gusts to 15 kts. CAPE 60–80 J/kg adds instability. No clearing signal from any source."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Tomorrow.io gusts reach 17–19 kts by 16–17Z with 100% cloud cover. Even if the layer thinned, conditions would be punchy and gusty — not appropriate for coastal ridge soaring."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "10–12 kts SSW, gusts to 19 kts",
+        "thermals": "N/A (ridge site)",
+        "hazards": "Marine layer at 300–1300 ft MSL at KHAF, mist and 3SM visibility, cloud bases at or below bluff crest, afternoon gusts 17–19 kts, cold SST 12.5°C limiting burn-off",
+        "skillLevel": "P3+ locals only"
+      }
+    },
+    {
+      "name": "Mission Peak",
+      "locationDescriptor": "Fremont — inland ridge/thermal site, SW-facing, 2517 ft summit",
+      "howItWorks": "Mission Peak soars on SW-to-W sea breeze reinforced by valley thermals as the East Bay heats up. Ideal conditions are SW 10–18 kts, thermals to 4000 ft AGL, and clear or broken skies. The site is somewhat more sheltered from marine layer than coastal sites but still vulnerable to overcast suppressing thermal development.",
+      "todaySetup": "Mission Peak shares the same overcast and capped boundary layer problem as Ed Levin — the KRHV BKN040 report and 100% cloud cover in both HRRR and GFS all day confirm thermals cannot develop meaningfully. The BL tops out at 660–1000 m above the valley floor midday, which translates to marginal or below-launch height relative to the 2517 ft summit. More critically, Tomorrow.io flags a 19.4 kt gust at 14Z — the highest single gust value across all sites today — indicating the SSW flow is punchy and potentially turbulent as it interacts with the ridge terrain. CAPE builds to 130 J/kg by 14Z with 16% precip risk, and winds at 120 m level reach 16–17 kts SSW by afternoon. This combination of low overcast, capped thermals, high CAPE with shower risk, and gusty punchy conditions makes Mission Peak a no-fly today.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "SSW 9–11 kts, 80–100% cloud cover, BL only 470–660 m. No thermal development possible; launch would be in or near cloud."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "CAPE spikes to 100–130 J/kg, precip risk 9–16%, Tomorrow.io gusts to 19.4 kts at 14Z. Cloud 80–99%. Punchy, unstable conditions with shower risk — no fly."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Wind clocks W-WNW 270–273° at 13–14 kts at 80 m, cloud 100%, CAPE still elevated. Continued shower risk and turbulence; conditions do not improve."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "10–13 kts SSW→W, gusts to 19 kts",
+        "thermals": "Weak",
+        "hazards": "Persistent overcast blocking thermals, CAPE 130 J/kg with 16% precip risk, gusts to 19.4 kts at 14Z (Tomorrow.io), inversion capping BL below summit, potential convective showers",
+        "skillLevel": "P3+ locals only"
+      }
+    }
+  ],
+  "outlook": {
+    "tomorrow": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Thursday looks significantly better. Both HRRR and GFS show clearing to near-zero cloud cover by 08Z with NNW winds 10–12 kts and BL heights climbing to 875–1000 m. However, Tomorrow.io flags 35–40% precip probability at 08Z with visibility down to 1 km, suggesting morning fog or residual showers early. If that clears by midday, afternoon NNW 10–11 kts with BL near 1000 m and gusts to 17–19 kts (Tomorrow.io) could offer ridge-assisted soaring — but the afternoon gust values are borderline punchy. Watch for the morning clearing timeline carefully."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Similar story to the upper launch — early morning precip/fog risk (Tomorrow.io 40% at 08Z, vis 1.7 km) followed by potential clearing to NNW flow. Afternoon NNW 9–11 kts with BL 980–1165 m and gusts 16–19 kts could work for upper intermediate pilots if clearing arrives, but the morning uncertainty is a yellow flag. Check KRHV METAR by 9 AM."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Thursday offers the best coastal day this week. GFS/HRRR show NW-NNW 10–14 kts building to 14–20 kts by afternoon with near-zero cloud cover after morning clearing. BL heights reach 900–1240 m, and the wind direction (320–337°) is excellent for the ridge. Tomorrow.io gusts reach 17–19 kts through the afternoon — strong but manageable for experienced pilots. The morning may still have residual marine layer per Tomorrow.io (97–100% cloud at 08Z), so plan for a midday–afternoon session."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Thursday shows good potential — NNW 10–12 kts, BL to 875 m, clear skies by mid-morning. Tomorrow.io morning flag (35% precip, 0.6 km vis at 08Z) suggests fog near the summit early; afternoon clearing with NNW 5–12 kts and gusts 14–16 kts would support a reasonable thermal/ridge session. Weaker winds than Mussel Rock may mean lighter thermals, but it could be the more mellow option for P2 pilots if conditions behave."
+      }
+    ],
+    "day2": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Friday (Day 2) looks like the best thermal day of the stretch. GFS shows very light NNW winds 2–7 kts, BL climbing to 1085–1400 m, and zero cloud/precip. Light winds mean thermal-dependent soaring; thermals could be moderate to strong under April sun with ample heating. Watch for light-and-variable conditions early requiring patience at launch."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Friday's light winds (5–7 kts NW) and high BL (1085–1400 m) would make for an excellent thermal day at the lower launch as well, provided thermals are strong enough to work from the training hill. Could be a great P2 supervised day with calm, smooth early morning and building thermals by midday."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Friday looks much lighter at Mussel Rock — GFS shows 3–8 kts variable direction, BL 280–1195 m, zero cloud. Without consistent onshore flow the ridge lift will be unreliable. Could see some thermal activity late morning if heating is sufficient, but inconsistent wind direction is a concern for the coastal bluff. Not a prime day here."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Friday looks promising for Mission Peak — light NNW-N winds 4–6 kts, BL reaching 925–1070 m, no cloud. A classic light-wind thermal day with slow-building cycles. Moderate thermals expected by midday. Good day for P2+ pilots comfortable in light, thermally active air."
+      }
+    ],
+    "day3": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Day 3 data only extends through GFS; conditions appear similar to Friday with light variable winds and no precipitation. Thermal potential remains the focus — BL and CAPE data not yet well-resolved at this range. Tentatively looks like another light-wind thermal day."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Expect similar light-wind thermal conditions to Friday at Day 3 range. Monitor the evening before for model updates on sea breeze timing and marine layer return."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Insufficient resolution at Day 3 for coastal confidence. The pattern shift to lighter/variable winds seen Friday may persist. Check updated forecasts Friday evening."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Day 3 thermal potential looks moderate — light NNE winds, clear skies, BL building. Could be a good window for a long XC day if the thermal cycle develops fully. Low confidence at this range."
+      }
+    ]
+  },
+  "watchlist": [
+    "Marine layer at KHAF is OVC003–OVC013 this morning — monitor for clearing timing at coastal sites; cold SST (12.5°C at 46012) suggests slow or no clearing today",
+    "CAPE values of 100–140 J/kg with 15–19% precip probability at Ed Levin and Mission Peak this afternoon — convective shower risk is real despite overcast",
+    "Tomorrow.io flags gusts to 19.4 kts at Mission Peak (14Z) and 17–19 kts at Mussel Rock (16–17Z) — significantly higher than model mean winds, indicating punchy/unstable flow",
+    "Thursday morning fog/precip flag from Tomorrow.io (35–40% precip, sub-2 km visibility at 08Z) may delay the otherwise promising Thursday session — check KRHV and KHAF METARs before driving out",
+    "Wind shift from SSW to W-WNW at Ed Levin and Mission Peak by 15–16Z today — crosses through turbulent shear zone; avoid being airborne during the transition"
+  ],
+  "tldr": "Today is a widespread no-fly across all four sites — the Bay Area is socked in with a deep marine layer (KHAF OVC003, 3SM mist), a capped boundary layer under 1000 m, and CAPE building to 130–140 J/kg with real shower risk this afternoon. Thursday is shaping up as the best day of the stretch, especially at Mussel Rock and Ed Levin, if the morning fog clears by midday — but check your METARs before heading out. Friday looks like a classic light-wind thermal day worth planning for."
+}
