@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-04-04T14:00:00Z",
+  "date": "Saturday, April 4, 2026",
+  "upperAir": "The KOAK sounding shows an extremely stable atmosphere with a near-zero lapse rate from surface to 850mb (12.6°C at surface, 12.6°C at 1536m) — an isothermal or slight inversion layer capping the boundary layer tightly around 1500m MSL. Above 850mb the atmosphere cools normally. This strong low-level inversion will severely suppress thermal development and cap convective activity all day. Upper-level winds are light and variable (4-6 kts at all levels), so wind shear is not a concern, but the inversion is the dominant story today.",
+  "aviationFlags": "No active AIRMETs for the Bay Area SF region. KSFO reporting BKN200 with calm to 4-kt SSW surface wind — marine influence present but clouds are high. KHAF consistently calm with 10SM visibility and CLR skies — unusual for the coast, suggesting marine layer is thin or absent this morning. KRHV calm with SKC and 10°C — inland valley not yet heated. KAPC calm with CLR — no strong pressure gradient developing. KWVI calm with CLR. Overall gradient is extremely weak, consistent with the light model winds.",
+  "sites": [
+    {
+      "name": "Ed Levin (1750 ft)",
+      "locationDescriptor": "Milpitas — inland ridge, S/SW-facing, thermal and ridge site",
+      "howItWorks": "Ed Levin's high launch at 1750ft works best when a thermal cycle develops to push pilots above launch, with valley breezes transitioning to a sea breeze from the W/SW by afternoon. Ideal winds are W-SW at 8-15 kts at launch elevation. The low 600ft launch is more forgiving and ridge-soarable in light SW flow.",
+      "todaySetup": "The dominant issue today is an extremely strong low-level inversion sitting right at 850mb (~1536m MSL), essentially a cap just above the high launch elevation. With a lapse rate of nearly 0°C/km from surface to 1500m, thermal development will be severely suppressed — any bubble that forms will quickly hit the inversion and die. Model winds at the 1750ft launch are extremely light and variable all morning (under 2 kts), shifting to S/SSW at 4-5 kts around 1-3 PM — marginally on-launch but far too light for soaring ridge lift. GFS and HRRR agree: BL depth barely reaches 1090-1425m MSL by early afternoon, confirming the inversion cap is real. Tomorrow.io shows gusts only to 4-6 kts at the site through the afternoon, and 100% cloud cover from mid-afternoon onward will further kill what little thermal energy might develop. By 6-7 PM a NW surge arrives (6-7 kts at 80m), but that's post-sunset and not usable. This is functionally a NO FLY day at high launch.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Calm to 2 kts, variable direction, 100% cloud cover, BL only 265-490m. No thermal or ridge lift possible."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Wind picks up slightly to 4-5 kts S/SSW by 1 PM — marginally on-launch — but BL capped near 1090m MSL and clouds persist at 100%. Thermals will be weak, broken, and unreliable under the inversion."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "BL grows to 1685m by 4 PM but cloud cover returns to 100% and surface winds drop back under 2 kts. A NW surge to 6+ kts arrives after 6 PM — post-sunset and not usable. No flyable window."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "<2 kts variable, 4-5 kts S at best",
+        "thermals": "Weak",
+        "hazards": "Strong low-level inversion capping thermals at ~1500m MSL, near-calm winds insufficient for ridge soaring, 100% cloud cover killing solar heating most of the day",
+        "skillLevel": "P3+"
+      }
+    },
+    {
+      "name": "Ed Levin (600 ft)",
+      "locationDescriptor": "Milpitas — lower training hill launch, S-facing, ridge/thermal site",
+      "howItWorks": "The 600ft launch is a gentler intro site suited for P2 pilots in light valley breeze conditions. It works on S/SW ridge lift or weak thermals when the BL begins to develop. Ideal conditions are light S-SW at 5-10 kts.",
+      "todaySetup": "Like the high launch, the 600ft site is hampered by the persistent inversion and cloud cover today, but the lower elevation means the situation is slightly less severe. Morning winds are calm to 2 kts with variable direction. By 1-2 PM, S/SSW winds reach 5 kts (on-launch for this S-facing site) with BL around 700-1070m MSL — technically just enough for a short sled ride or brief scratching, but 100% cloud cover suppresses thermal quality. Tomorrow.io gusts stay under 6 kts. The afternoon NW surge after 6 PM is unusable. At best, there's a very marginal 1-2 hour window around 12-2 PM for experienced P2s to scratch around in light S flow, but conditions are unimpressive and thermal development is poor.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Calm and variable, 100% overcast, BL only 195-425m. No flyable conditions."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "S/SSW winds build to 3-5 kts by noon-1 PM, marginally on-launch. BL reaches 700-1070m but clouds remain 100%. Weak, capped thermals at best — sled-ride territory."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Wind drops back to 3-4 kts SW by 3 PM, BL grows to 1695m but overcast returns to 100%. Conditions deteriorate. NW surge post-sunset is not usable."
+        }
+      ],
+      "verdict": {
+        "verdict": "MARGINAL",
+        "emoji": "⚠️",
+        "bestWindow": "12 PM – 2 PM",
+        "wind": "3-5 kts S/SSW",
+        "thermals": "Weak",
+        "hazards": "Inversion cap suppressing thermals, 100% cloud cover, light and variable winds with possible direction shift, NW surge late day",
+        "skillLevel": "P2+"
+      }
+    },
+    {
+      "name": "Mussel Rock",
+      "locationDescriptor": "Daly City — coastal bluff, W/NW-facing, ridge lift site",
+      "howItWorks": "Mussel Rock is a pure ridge soaring site driven by onshore W-NW sea breeze. Ideal winds are W to WNW at 10-20 kts at the ridge. The site needs consistent wind direction into the hill; ESE/E winds are cross or offshore and create rotor risk. Marine layer burn-off timing is critical for coastal access.",
+      "todaySetup": "Mussel Rock is presenting a confusing and unflyable picture today. This morning through early afternoon, winds are coming from the E/ESE (100-115°) at 8-12 kts — directly offshore, cross to the ridge face, creating rotor and turbulence risk rather than ridge lift. This is the primary NO FLY reason for the morning session. KHAF is calm with CLR skies and SST at 12.8°C, suggesting the marine layer is thin or not present, which explains the odd easterly drainage flow dominating the coast. Around 2-3 PM the models show a brief wind lull (2 kts at 131°) before a wind shift to W/WNW (270-290°) by 4-5 PM at 5-7 kts — which would normally be on-launch. However, Tomorrow.io shows afternoon winds from the ESE at 8-11 kts with gusts to 13-17 kts from the SE/E sector through 6-7 PM, directly contradicting the GFS/HRRR westerly shift. This significant model disagreement, combined with the punchy gust values from Tomorrow.io, makes the afternoon window unreliable and potentially dangerous. The buoy at SF Bar (46026) shows 7.8 kts from 080° — confirming easterly flow offshore — further supporting the cross/offshore wind scenario persisting longer than models suggest.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "E/ESE winds 9-12 kts — offshore and cross to the ridge face. Rotor and turbulence risk behind the bluff. Do not fly."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Winds weaken and shift more SE (100-130°), still cross-offshore. BL only 450-690m. No usable ridge lift, rotor risk persists. Tomorrow.io shows gusts to 13 kts ESE — punchy and dangerous."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "GFS/HRRR suggest a late W/WNW shift by 4-5 PM at 5-7 kts, but Tomorrow.io contradicts with sustained ESE gusts to 13-17 kts. Model disagreement makes this window unreliable. Avoid."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "8-12 kts E/ESE (cross/offshore)",
+        "thermals": "N/A (ridge site)",
+        "hazards": "Offshore/cross wind all morning creating rotor behind bluff, punchy ESE gusts to 13-17 kts per Tomorrow.io, major model disagreement on afternoon shift timing, SF Bar buoy confirming easterly flow",
+        "skillLevel": "P3+"
+      }
+    },
+    {
+      "name": "Mission Peak",
+      "locationDescriptor": "Fremont — inland peak, W-facing, thermal and ridge site",
+      "howItWorks": "Mission Peak works on W/NW sea breeze ridge lift and thermal development as the inland valley heats up. Ideal conditions are W-NW at 10-18 kts at the summit with a developed BL. The site is exposed and can get punchy when the sea breeze front arrives strongly.",
+      "todaySetup": "Mission Peak shares the same fundamental problem as Ed Levin: the powerful low-level inversion at ~1500m MSL and near-zero lapse rate will suppress thermal development throughout the day. Morning winds are essentially calm and variable (under 2 kts). A southerly shift occurs around 1-3 PM, reaching 4-5 kts S/SSW — marginally on-launch for this W-facing site but not ideal direction. Tomorrow.io shows winds from the E/ENE at 5-6 kts through afternoon, disagreeing with GFS/HRRR on direction, which is a red flag. BL grows to 1255m by 1 PM and 1685m by 4 PM, but 100% cloud cover suppresses solar heating and thermal quality. The evening NW surge reaches 6-7 kts by 6-7 PM but that is post-sunset. With an inversion capping thermals, cross/variable surface winds, 100% overcast, and model disagreement on wind direction, Mission Peak has no viable window today.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Calm to 2 kts, variable direction, 100% overcast, BL under 500m. No flyable conditions whatsoever."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "4-5 kts S/SSW by 1 PM per GFS/HRRR, but Tomorrow.io has ESE at 5-6 kts — significant model disagreement on direction. BL capped under 1300m, full overcast. Not a reliable window."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "BL deepens to 1685m by 4 PM but cloud cover stays 100%. Winds remain light and variable before a NW surge post-sunset. No usable thermal or ridge window."
+        }
+      ],
+      "verdict": {
+        "verdict": "NO FLY",
+        "emoji": "❌",
+        "bestWindow": "No viable window",
+        "wind": "<2 kts variable, 4-5 kts S at best midday",
+        "thermals": "Weak",
+        "hazards": "Strong inversion capping thermals below launch height for much of the day, 100% cloud cover, calm/variable winds, model disagreement on afternoon wind direction",
+        "skillLevel": "P3+"
+      }
+    }
+  ],
+  "outlook": {
+    "tomorrow": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Sunday April 5 looks similarly challenging. GFS/HRRR show 100% cloud cover all day, BL capping around 955-1160m MSL, and winds staying light (under 7 kts) with a NW surge developing by evening. Tomorrow.io confirms overcast all day with winds under 3 kts. The inversion and overcast pattern likely persists. Marginal at best, probably NO FLY again."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Sunday shows similar overcast (100%) and light winds through the day. A W/NW flow of 5-7 kts develops by mid-to-late afternoon which could offer brief ridge soaring opportunities at the lower launch. BL reaches 905-1250m. Marginal window around 3-5 PM for experienced P2s if clouds thin."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Sunday morning shows ESE winds again (4 kts, 119°) shifting to W/WNW (280-300°) by mid-morning per GFS/HRRR, reaching 6-9 kts by afternoon — more classically on-launch. However Tomorrow.io shows ESE through midday with gusts to 6 kts. 100% overcast all day. Worth watching but model disagreement on timing of westerly shift remains a concern. Marginal to FLY if the westerly arrives as GFS/HRRR suggest."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Sunday looks very similar to Saturday — 100% cloud cover, light and variable winds most of the day, BL capped under 1160m. A W/NW flow develops by 4-6 PM at 6-7 kts but cloud cover stays at 100%. No strong thermal window. Marginal at best."
+      }
+    ],
+    "day2": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Monday April 6 shows a significant pattern change: clear skies (0% cloud) and NW flow developing through the day. Winds build to 7-9 kts NW by afternoon at 10m, with 80m winds hitting 8 kts NW. BL reaches 990-1110m MSL. This is the most promising day of the 4-day window for thermal and ridge flying. Likely FLY conditions."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Monday April 6 mirrors the high launch with clear skies and NW flow 5-9 kts developing through the day. BL grows to 1110m with no cloud cover — solar heating will be much stronger. Best day of the forecast window. Likely FLY."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Monday April 6 looks like a strong soaring day for Mussel Rock. Clear skies, W winds building from 4 kts in the morning to 7-9 kts by afternoon (260-280°) — directly on-launch. 80m winds reach 9-12 kts. BL at 415-470m keeps it ridge-soarable. Classic sea breeze pattern. Strong FLY candidate."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Monday April 6 brings clear skies and W/WNW flow building to 5-6 kts at the summit by afternoon, with 80m winds reaching 9-12 kts. BL grows to 700-910m MSL. Much better thermal and ridge conditions than the weekend. Likely FLY for P2/P3."
+      }
+    ],
+    "day3": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "GFS day 3 data not available in dataset. Trend from Monday suggests the NW pattern may continue — watch for strengthening NW flow that could push beyond comfortable limits at the exposed high launch."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "No day 3 GFS data beyond Monday. If the NW pattern continues, Tuesday could be another good day at the lower launch with moderate NW ridge soaring conditions."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "No day 3 GFS data beyond Monday. Sustained NW pattern would favor Mussel Rock continuing its strong performance — watch for possible over-development of sea breeze making conditions too strong for P2 pilots."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "No day 3 GFS data beyond Monday. If NW flow continues to build, Mission Peak could see strong W/NW ridge conditions. Monitor for overpowering afternoon gusts."
+      }
+    ]
+  },
+  "watchlist": [
+    "Strong low-level inversion at ~1500m MSL (isothermal 0°C/km sfc-850mb) suppresses all thermal development today — this is the defining feature of the forecast",
+    "Mussel Rock: SF Bar buoy (46026) showing 7.8 kts from 080° confirms easterly/offshore flow — monitor for timing of westerly sea breeze return both today and tomorrow",
+    "Tomorrow.io and GFS/HRRR show significant wind direction disagreement at Mussel Rock and Mission Peak this afternoon — trust Tomorrow.io's easterly gust values as a caution flag",
+    "Monday April 6 pattern break to clear skies and NW flow looks like the first real flying day of the period — check Monday morning update for confirmation",
+    "Marine layer dynamics are unusual today: KHAF showing CLR with calm winds and SST only 12.8°C — watch for potential afternoon marine push that could reinforce easterly drainage or trigger late sea breeze"
+  ],
+  "tldr": "Today is mostly a bust across all Bay Area sites — a powerful low-level inversion (near-zero lapse rate to 850mb) and persistent overcast are killing thermals, and Mussel Rock is getting hammered by offshore/cross winds from the ESE. Ed Levin 600ft has a slim marginal window around noon if you're desperate, but don't expect much. Monday April 6 looks like the real day — clear skies, NW flow, and no inversion. Sit tight."
+}
