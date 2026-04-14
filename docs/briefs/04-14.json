@@ -1,0 +1,188 @@
+{
+  "generatedAt": "2026-04-14T15:00:00Z",
+  "date": "Tuesday, April 14, 2026",
+  "upperAir": "KOAK sounding shows a surface temperature of 16.2°C at sea level with a lapse rate of 8.65°C/km to 850mb — near dry adiabatic, suggesting decent instability in the lower atmosphere. The 850mb level (1506m) sits at only 3.2°C with a 6°C spread, indicating a moist but not saturated layer aloft. Winds back from 295° at the surface to 355° at 850mb and above (350–355° at 700/500mb), signaling a classic NW flow aloft; thermal ceiling is suppressed — BL heights in the models top out around 500–615m at Ed Levin, well below ridge top for meaningful soaring, with widespread overcast further limiting solar heating.",
+  "aviationFlags": "No active AIRMETs for the Bay Area SF region. KAPC (Napa) had dense fog and near-zero visibility through ~1340Z, clearing slowly to BKN002 by 1354Z and FEW001 by 1454Z — indicates a very stable, saturated airmass in the North Bay valley this morning. KSFO reporting OVC020–021 with 27010KT, consistent with a persistent marine stratus layer. KHAF reporting OVC020–025 with 320–330° winds at 8–11 kts — marine layer firmly in place at the coast. KRHV (near Ed Levin) reporting BKN030, calm winds, 10°C — marginally better inland but still overcast.",
+  "sites": [
+    {
+      "name": "Ed Levin (1750 ft)",
+      "locationDescriptor": "Milpitas — inland ridge, W/NW-facing launch",
+      "howItWorks": "Ed Levin high launch is a thermal and ridge-lift site. It needs W to NW winds of 8–18 kts at ridge level, combined with solar heating to develop thermals. The BL needs to reach or exceed launch elevation (~530m) for meaningful climbs. It is sheltered enough from the direct marine push that it can work even on moderate sea-breeze days, but thick overcast kills thermal development.",
+      "todaySetup": "The deciding factor today is persistent overcast suppressing solar heating — models show 96–100% cloud cover through early afternoon, and KRHV confirms BKN030 at launch time. BL heights are forecast at only 260–500m through midday, well below the 1750 ft (533m) launch, meaning thermals are essentially nonexistent during the prime window. Winds at 10m are moderate WNW at 5–11 kts (backing slightly W-SW early), which is directionally acceptable, but without sun there's no thermal trigger. Clouds begin breaking 14:00–17:00 with cover dropping to 27–60% by 3–4 PM per HRRR, and BL climbs modestly to 460–470m — borderline. Tomorrow.io shows gusts only 6–8 kts at the ridge in the afternoon, consistent with light-to-moderate conditions. The best theoretical window is a narrow 2–4 PM slot if clouds clear as modeled, but even then thermals will be weak and short-lived given the limited solar window and low BL. Not a reliable fly day.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "100% overcast, BL 260–455m, surface winds 5–6 kts W-WNW. No solar heating, no thermals. Unlaunchable for any meaningful flight."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Still mostly overcast (60–100%), BL stagnant at 460–500m, winds building to 7–9 kts WNW. Marginal direction but cloud cover still blocking thermals."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Best chance of the day — cloud cover drops to 27–60% by 3–4 PM, winds 10–11 kts WNW at 10m (11–13 kts at 80m). If clearing occurs, brief weak thermals possible. Monitor sky conditions before committing to drive."
+        }
+      ],
+      "verdict": {
+        "verdict": "MARGINAL",
+        "emoji": "⚠️",
+        "bestWindow": "2 PM – 4 PM (cloud-break dependent)",
+        "wind": "10–11 kts WNW",
+        "thermals": "Weak",
+        "hazards": "Persistent overcast suppresses thermals all morning; BL stays below launch for most of the day; if clouds break, thermals will be weak and irregular; sea breeze increasing to ~11 kts by 3–4 PM",
+        "skillLevel": "P3+"
+      }
+    },
+    {
+      "name": "Ed Levin (600 ft)",
+      "locationDescriptor": "Milpitas — lower training hill, W-facing",
+      "howItWorks": "The 600 ft training hill at Ed Levin is suited for sledders and short soaring in moderate W-NW winds. It needs 8–15 kts on the nose (W to NW) and is best in light thermic conditions. Very sensitive to overcast — without sun, it's sledder-only.",
+      "todaySetup": "Same overcast story as the high launch but more acute — at 600 ft, the BL (615m max at noon) is technically above the hill, but thick cloud cover through midday means no thermal development. Surface winds at the lower site are slightly lighter than the high launch (3–8 kts in the morning, building to 10–12 kts WNW by mid-afternoon), which is fine for the training hill. The best use of this site today is afternoon sledders once the sea breeze fills in around 2–4 PM with 10–12 kts WNW. Tomorrow.io shows gusts to only 5–6 kts at this elevation through late afternoon — gentle enough for P2 work if winds verify. The persistent overcast and weak thermal environment make this a training-hill-only day, not a soaring day.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "Winds 4–5 kts W-NW, 75–100% overcast. Barely soarable; likely sledder conditions only. Not worth it for experienced pilots."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Winds building to 7–9 kts WNW, still mostly overcast (25–100%). Sporadic cloud breaks possible by 1–2 PM. Sledder to marginal soaring window."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Sea breeze fills in at 10–12 kts WNW by 3–4 PM with cloud cover dropping to 16–28%. Best window for the training hill — on-the-nose direction, manageable speed for P2 work if gusts stay light per Tomorrow.io."
+        }
+      ],
+      "verdict": {
+        "verdict": "MARGINAL",
+        "emoji": "⚠️",
+        "bestWindow": "2 PM – 4 PM",
+        "wind": "10–12 kts WNW",
+        "thermals": "Weak",
+        "hazards": "Overcast limits thermals; sledder-only in morning; afternoon sea breeze may be slightly punchy at 80m level (13–14 kts)",
+        "skillLevel": "P2+"
+      }
+    },
+    {
+      "name": "Mussel Rock",
+      "locationDescriptor": "Daly City — coastal ridge, W/NW-facing",
+      "howItWorks": "Mussel Rock is a pure ridge-soaring site powered by the Pacific sea breeze and NW swell-driven onshore flow. Ideal conditions are 12–22 kts from 270–320° at ridge height. It can be flown in overcast since it doesn't need thermals. Key hazards are gusty or strong NW winds creating rotor behind the ridge and bullet thermals when clouds break.",
+      "todaySetup": "Mussel Rock looks viable today — it's a ridge site and doesn't need thermals, so the persistent overcast is not a dealbreaker. However, the wind story is nuanced. Winds are building through the day from ~9 kts at 8 AM to 12–13 kts by afternoon at 10m, which is solid. The direction is 290–305° — right on the money for the W-facing ridge. HRRR and GFS agree well here. At 80m (closer to ridge/soaring height), winds are 11–17 kts NW through the afternoon — flyable but getting strong. The SF Bar buoy shows 17.5 kts at 320° and Half Moon Bay buoy shows 13.6 kts at 300° with 1.9m/8s swells — a solid onshore flow is established. Tomorrow.io shows gusts reaching 11–12 kts at the surface, while HRRR 80m winds hit 15–17 kts by afternoon. Marine layer is firmly overcast (100% cloud cover all day per all models, confirmed by KHAF OVC020–025 and KSFO OVC021), which keeps things smooth but gray. The site is soarable in the 10–15 kt range; afternoon winds push toward the upper end and could get punchy for P2 pilots.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "9–10 kts from 295–300°, 100% overcast. Light-to-moderate ridge lift, manageable for P2+. Consistent but not dynamic — good for building confidence laps."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Winds building to 10–12 kts WNW at 10m, 12–14 kts at 80m. Still 45–70% cloud cover with breaks possible. Best soaring window — solid ridge lift, direction ideal, not yet overpowering."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Winds peaking 12–13 kts at surface, 15–17 kts at 80m. Getting energetic — P3 pilots comfortable, P2 should be cautious as gusts reported to 11–12 kts at surface and likely stronger at ridge height. Marine layer remains thick."
+        }
+      ],
+      "verdict": {
+        "verdict": "FLY",
+        "emoji": "✅",
+        "bestWindow": "10 AM – 1 PM",
+        "wind": "10–13 kts WNW",
+        "thermals": "N/A (ridge site)",
+        "hazards": "Afternoon winds building toward 15+ kts at ridge height; 100% overcast all day (gray but smooth); potential rotor behind ridge if winds exceed 18 kts; P2 should exit by noon",
+        "skillLevel": "P2+ (morning), P3+ (afternoon)"
+      }
+    },
+    {
+      "name": "Mission Peak",
+      "locationDescriptor": "Fremont — inland ridge/thermal site, W-facing",
+      "howItWorks": "Mission Peak soars on a combination of ridge lift and thermals. It needs W-NW winds of 8–18 kts at ridge level and solar heating to develop thermals. Like Ed Levin high, it requires clearing skies for the best flying. The peak elevation (~1282m) means cloud base needs to be well above 4000 ft for good thermal soaring.",
+      "todaySetup": "Mission Peak shares the same overcast problem as Ed Levin — models show 96–100% cloud cover through early afternoon, hammering thermal development. BL heights are 260–500m through midday, and at 10m the surface winds are 5–11 kts W-WNW — directionally fine but without sun there's no thermal driver. Tomorrow.io shows gusts to 7.6–9.5 kts from a slightly more southerly component (SW 216–242°) in the afternoon, which is slightly cross to left of ideal for Mission Peak's W-facing aspect. Cloud cover breaks to 27–59% around 3–4 PM per HRRR, which is the same marginal clearing window as Ed Levin. At 120m height the winds are more impressive (12–15 kts by 4–5 PM) indicating a stronger gradient aloft. A narrow afternoon window exists if clearing verifies, but expect weak, broken thermals at best.",
+      "hourlyWindows": [
+        {
+          "label": "Morning (8–11 AM)",
+          "summary": "100% overcast, calm to 6 kts W, BL 260–455m. No thermals, no solar heating. Not viable for soaring."
+        },
+        {
+          "label": "Midday (11 AM–2 PM)",
+          "summary": "Still 60–100% cloud cover, winds 5–9 kts WNW. BL improving slightly to 460–470m but still overcast limiting thermals. Marginal at best."
+        },
+        {
+          "label": "Afternoon (2 PM–sunset)",
+          "summary": "Cloud cover breaks to 27–59% by 3–4 PM; winds 10–11 kts WNW with gusts to 9.5 kts (Tomorrow.io). If clearing holds, brief weak thermals possible. Direction slightly SW (230°) per Tomorrow.io — watch for cross-wind component at launch."
+        }
+      ],
+      "verdict": {
+        "verdict": "MARGINAL",
+        "emoji": "⚠️",
+        "bestWindow": "3 PM – 5 PM (sky-dependent)",
+        "wind": "10–11 kts WNW",
+        "thermals": "Weak",
+        "hazards": "Thick overcast all morning suppresses thermals; BL well below ridge for most of the day; afternoon wind direction may be slightly SW (cross to launch); limited viable soaring window even if clearing occurs",
+        "skillLevel": "P3+"
+      }
+    }
+  ],
+  "outlook": {
+    "tomorrow": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Wednesday Apr 15 looks poor. Models show 100% cloud cover all day with BL heights barely reaching 350–490m. HRRR and GFS agree: overcast all day, winds 8–11 kts WNW. Tomorrow.io shows gusts to 10–12 kts but the persistent cloud cover means no thermal development. A NO FLY day for the high launch."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Same overcast story as the high launch Wednesday. 100% cloud cover with BL 375–525m. Winds 6–12 kts WNW — fine for the training hill directionally, but no thermals. Sledder-only day at best."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Wednesday looks stronger and potentially over-the-top. Tomorrow.io shows 14–16 kts at 10m with gusts 18–21 kts from 317–325°. HRRR 80m winds 17–18.5 kts all day. This is strong NW flow — borderline for P3 locals only. 100% overcast. P2 pilots should sit it out."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Wednesday mirrors Ed Levin — 100% overcast, BL 350–490m, winds 8–11 kts WNW. No thermal ceiling, no solar heating. Not a viable soaring day."
+      }
+    ],
+    "day2": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "Thursday Apr 16 looks dramatically better. GFS shows clearing skies (0% cloud cover), BL heights soaring to 1240–1725m by afternoon, and winds shifting to NNW-N at 8–11 kts. This is a proper thermal day — expect active thermals to 5000+ ft with good potential for XC. Wind direction from N/NNW may be slightly cross at some launches; verify early."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Thursday Apr 16 clears dramatically — BL reaches 1240–1725m, skies clear, winds NNW at 8–11 kts. A good thermal soaring day from both launches. Same strong improvement as the high launch."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Thursday Apr 16 sees clearing with winds at 7–13 kts from 290–360° and BL heights 495–1590m. The wind direction is more northerly (N-NNW) which is slightly cross for the W-facing ridge but with a stronger thermal component. Could be a mixed ridge-and-thermal day for P3 pilots."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Thursday Apr 16 shows excellent conditions — clear skies, BL reaching 1225–1640m, winds NNE-N at 8–11 kts. Strong thermals expected. Wind direction is NNE in the morning backing to N by afternoon, which may be cross to Mission Peak's W-facing launch — check conditions carefully on the hill."
+      }
+    ],
+    "day3": [
+      {
+        "name": "Ed Levin (1750 ft)",
+        "analysis": "No data beyond Day 2 (Apr 16) in the current dataset for a Day 3 (Apr 17) forecast. Based on the pattern transition to a NW flow regime with clearing, conditions likely remain thermal-friendly if the ridge holds. Monitor updated models."
+      },
+      {
+        "name": "Ed Levin (600 ft)",
+        "analysis": "Day 3 (Apr 17) forecast not available in current data. Pattern trend toward clearing and thermal days continues — check updated GFS/HRRR runs Wednesday morning."
+      },
+      {
+        "name": "Mussel Rock",
+        "analysis": "Day 3 (Apr 17) not in current dataset. If NW flow strengthens as expected with the clearing pattern, Mussel Rock could see moderate-to-strong ridge days. Watch for potential over-flying conditions."
+      },
+      {
+        "name": "Mission Peak",
+        "analysis": "Day 3 (Apr 17) beyond current data. Thermal pattern trend from Apr 16 clearing suggests continued good potential if NW flow gradient persists. Monitor updates."
+      }
+    ]
+  },
+  "watchlist": [
+    "Thursday Apr 16 looks like the star day of the week — BL heights 1240–1725m, clear skies, NNW winds at Ed Levin and Mission Peak. Mark your calendar now.",
+    "Marine layer stubbornly entrenched today and Wednesday — KHAF OVC020, KSFO OVC021, buoys showing 13.8°C SST with 1.9m/8s swells. Burn-off will be slow or nonexistent at coastal sites.",
+    "KAPC dense fog this morning (1/4 SM visibility at 1342Z) signals very stable, saturated North Bay airmass — reinforces suppressed thermals inland for today.",
+    "Mussel Rock afternoon winds Wednesday: Tomorrow.io gusting to 20–21 kts at 10m, HRRR 80m at 18+ kts. Could be overdone for most pilots — assess carefully on the hill.",
+    "Wind direction Thursday shifts to N/NNE at Ed Levin and Mission Peak — may be cross or slightly back-to-normal W-facing launches. Verify wind direction at each site before flying."
+  ],
+  "tldr": "Today's best bet is Mussel Rock — it's the only site that doesn't need thermals, and the 10–13 kt WNW flow is right on for ridge soaring; fly the 10 AM–1 PM window before it gets punchy. Inland sites (Ed Levin, Mission Peak) are smothered in overcast all morning with marginal afternoon clearing — only worth checking if you see blue sky by 2 PM. If you can wait, Thursday Apr 16 looks like the real prize day with clear skies and BL heights over 5000 ft at Ed Levin."
+}
